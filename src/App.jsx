@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 
+const TABS = [
+  { id: 'extract', label: 'Extract' },
+  { id: 'ledger', label: 'Ledger' },
+]
+
 const formatMMK = (value) => {
   if (value === null || value === undefined || value === '') return '—'
   return `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(
@@ -43,7 +48,249 @@ function StatCard({ label, value, hint }) {
   )
 }
 
+function TabBar({ activeTab, onSelect }) {
+  return (
+    <div className="mt-6 inline-flex rounded-xl border border-slate-800 bg-slate-900 p-1">
+      {TABS.map((tab) => (
+        <button
+          key={tab.id}
+          type="button"
+          onClick={() => onSelect(tab.id)}
+          aria-current={activeTab === tab.id ? 'page' : undefined}
+          className={`rounded-lg px-5 py-2 text-sm font-medium transition ${
+            activeTab === tab.id
+              ? 'bg-emerald-500 text-slate-950'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function ExtractTab({
+  messages,
+  onMessagesChange,
+  onExtract,
+  extracting,
+  draft,
+  onSave,
+  onDiscard,
+  saving,
+}) {
+  return (
+    <section className="mt-8 rounded-xl border border-slate-800 bg-slate-900 p-5">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-300">
+        Extract orders from chat
+      </h2>
+      <p className="mt-1 text-xs text-slate-500">
+        Paste raw messages. Nothing is saved until you review and confirm.
+      </p>
+
+      <textarea
+        value={messages}
+        onChange={(event) => onMessagesChange(event.target.value)}
+        rows={8}
+        placeholder="Paste your Messenger or Viber messages here..."
+        className="mt-4 w-full resize-y rounded-lg border border-slate-700 bg-slate-950 p-4 text-sm text-slate-100 placeholder:text-slate-600 focus:border-emerald-500/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/40"
+      />
+
+      <button
+        type="button"
+        onClick={onExtract}
+        disabled={extracting || !messages.trim()}
+        className="mt-3 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+      >
+        {extracting ? 'Reading messages...' : 'Extract Orders'}
+      </button>
+
+      {draft?.length ? (
+        <div className="mt-6 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4">
+          <p className="text-sm font-medium text-emerald-300">
+            Found {draft.length} {draft.length === 1 ? 'order' : 'orders'}
+          </p>
+          <p className="mt-1 text-xs text-slate-400">
+            Review before saving. A dash means the message did not say.
+          </p>
+
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="text-xs uppercase tracking-wider text-slate-400">
+                <tr>
+                  <th className="px-3 py-2 font-medium">Customer</th>
+                  <th className="px-3 py-2 font-medium">Item</th>
+                  <th className="px-3 py-2 text-right font-medium">Qty</th>
+                  <th className="px-3 py-2 text-right font-medium">Unit Price</th>
+                  <th className="px-3 py-2 text-right font-medium">Total</th>
+                  <th className="px-3 py-2 font-medium">Area</th>
+                  <th className="px-3 py-2 font-medium">Paid</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800">
+                {draft.map((row, index) => (
+                  <tr key={index}>
+                    <td className="px-3 py-2 text-slate-100">{row.customer ?? '—'}</td>
+                    <td className="px-3 py-2 text-slate-300">{row.item ?? '—'}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-slate-300">
+                      {row.quantity ?? '—'}
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums text-slate-300">
+                      {formatMMK(row.unit_price)}
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums text-slate-100">
+                      {formatMMK(row.total)}
+                    </td>
+                    <td className="px-3 py-2 text-slate-400">{row.area ?? '—'}</td>
+                    <td className="px-3 py-2 text-slate-300">
+                      {row.paid ? 'Paid' : 'Unpaid'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-4 flex gap-3">
+            <button
+              type="button"
+              onClick={onSave}
+              disabled={saving}
+              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+            >
+              {saving ? 'Saving...' : 'Save to Ledger'}
+            </button>
+            <button
+              type="button"
+              onClick={onDiscard}
+              disabled={saving}
+              className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800 disabled:opacity-50"
+            >
+              Discard
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </section>
+  )
+}
+
+function LedgerTab({
+  orders,
+  stats,
+  loading,
+  onTogglePaid,
+  pendingId,
+  onRemind,
+  remindingId,
+}) {
+  return (
+    <>
+      <section className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Total Revenue" value={formatMMK(stats.revenue)} />
+        <StatCard label="Orders" value={stats.count} />
+        <StatCard
+          label="Top Product"
+          value={stats.topItem ?? '—'}
+          hint={stats.topItem ? `${stats.topQuantity} sold` : undefined}
+        />
+        <StatCard
+          label="Unpaid Amount"
+          value={formatMMK(stats.unpaid)}
+          hint={`${orders.filter((order) => !order.paid).length} unpaid orders`}
+        />
+      </section>
+
+      <section className="mt-8 overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="border-b border-slate-800 bg-slate-900/80 text-xs uppercase tracking-wider text-slate-400">
+              <tr>
+                <th className="px-4 py-3 font-medium">Customer</th>
+                <th className="px-4 py-3 font-medium">Item</th>
+                <th className="px-4 py-3 text-right font-medium">Qty</th>
+                <th className="px-4 py-3 text-right font-medium">Unit Price</th>
+                <th className="px-4 py-3 text-right font-medium">Total</th>
+                <th className="px-4 py-3 font-medium">Area</th>
+                <th className="px-4 py-3 font-medium">Paid</th>
+                <th className="px-4 py-3 font-medium">
+                  <span className="sr-only">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800">
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="px-4 py-10 text-center text-slate-400">
+                    Loading orders…
+                  </td>
+                </tr>
+              ) : orders.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-4 py-14 text-center">
+                    <p className="text-base font-medium text-slate-300">No orders yet</p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      Head to the Extract tab and paste some chat messages to get started.
+                    </p>
+                  </td>
+                </tr>
+              ) : (
+                orders.map((order) => (
+                  <tr key={order.id} className="transition hover:bg-slate-800/40">
+                    <td className="px-4 py-3 font-medium text-slate-100">
+                      {order.customer}
+                    </td>
+                    <td className="px-4 py-3 text-slate-300">{order.item}</td>
+                    <td className="px-4 py-3 text-right tabular-nums text-slate-300">
+                      {order.quantity}
+                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums text-slate-300">
+                      {formatMMK(order.unit_price)}
+                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums font-medium text-slate-100">
+                      {formatMMK(order.total)}
+                    </td>
+                    <td className="px-4 py-3 text-slate-400">{order.area}</td>
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        onClick={() => onTogglePaid(order)}
+                        disabled={pendingId === order.id}
+                        className={`rounded-full px-3 py-1 text-xs font-medium transition disabled:opacity-50 ${
+                          order.paid
+                            ? 'bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25'
+                            : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'
+                        }`}
+                      >
+                        {order.paid ? 'Paid' : 'Unpaid'}
+                      </button>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {order.paid ? null : (
+                        <button
+                          type="button"
+                          onClick={() => onRemind(order)}
+                          disabled={remindingId === order.id}
+                          className="rounded-lg border border-slate-700 px-3 py-1 text-xs font-medium text-slate-300 transition hover:border-emerald-500/40 hover:text-emerald-300 disabled:opacity-50"
+                        >
+                          {remindingId === order.id ? 'Writing…' : 'Remind'}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </>
+  )
+}
+
 function App() {
+  const [activeTab, setActiveTab] = useState('extract')
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(
@@ -174,6 +421,7 @@ function App() {
       setDraft(null)
       setMessages('')
       await fetchOrders()
+      setActiveTab('ledger')
     }
     setSaving(false)
   }
@@ -232,208 +480,37 @@ function App() {
           </p>
         </header>
 
+        <TabBar activeTab={activeTab} onSelect={setActiveTab} />
+
         {error ? (
           <div className="mt-6 rounded-lg border border-red-500/40 bg-red-500/10 p-4">
-            <p className="text-sm font-medium text-red-300">Supabase error</p>
+            <p className="text-sm font-medium text-red-300">Something went wrong</p>
             <p className="mt-1 break-words text-sm text-red-200/80">{error}</p>
           </div>
         ) : null}
 
-        <section className="mt-8 rounded-xl border border-slate-800 bg-slate-900 p-5">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-300">
-            Extract orders from chat
-          </h2>
-          <p className="mt-1 text-xs text-slate-500">
-            Paste raw messages. Nothing is saved until you review and confirm.
-          </p>
-
-          <textarea
-            value={messages}
-            onChange={(event) => setMessages(event.target.value)}
-            rows={8}
-            placeholder="Paste your Messenger or Viber messages here..."
-            className="mt-4 w-full resize-y rounded-lg border border-slate-700 bg-slate-950 p-4 text-sm text-slate-100 placeholder:text-slate-600 focus:border-emerald-500/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/40"
+        {activeTab === 'extract' ? (
+          <ExtractTab
+            messages={messages}
+            onMessagesChange={setMessages}
+            onExtract={extractOrders}
+            extracting={extracting}
+            draft={draft}
+            onSave={saveDraft}
+            onDiscard={() => setDraft(null)}
+            saving={saving}
           />
-
-          <button
-            type="button"
-            onClick={extractOrders}
-            disabled={extracting || !messages.trim()}
-            className="mt-3 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
-          >
-            {extracting ? 'Reading messages...' : 'Extract Orders'}
-          </button>
-
-          {draft?.length ? (
-            <div className="mt-6 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4">
-              <p className="text-sm font-medium text-emerald-300">
-                Found {draft.length} {draft.length === 1 ? 'order' : 'orders'}
-              </p>
-              <p className="mt-1 text-xs text-slate-400">
-                Review before saving. A dash means the message did not say.
-              </p>
-
-              <div className="mt-3 overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="text-xs uppercase tracking-wider text-slate-400">
-                    <tr>
-                      <th className="px-3 py-2 font-medium">Customer</th>
-                      <th className="px-3 py-2 font-medium">Item</th>
-                      <th className="px-3 py-2 text-right font-medium">Qty</th>
-                      <th className="px-3 py-2 text-right font-medium">Unit Price</th>
-                      <th className="px-3 py-2 text-right font-medium">Total</th>
-                      <th className="px-3 py-2 font-medium">Area</th>
-                      <th className="px-3 py-2 font-medium">Paid</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800">
-                    {draft.map((row, index) => (
-                      <tr key={index}>
-                        <td className="px-3 py-2 text-slate-100">
-                          {row.customer ?? '—'}
-                        </td>
-                        <td className="px-3 py-2 text-slate-300">{row.item ?? '—'}</td>
-                        <td className="px-3 py-2 text-right tabular-nums text-slate-300">
-                          {row.quantity ?? '—'}
-                        </td>
-                        <td className="px-3 py-2 text-right tabular-nums text-slate-300">
-                          {formatMMK(row.unit_price)}
-                        </td>
-                        <td className="px-3 py-2 text-right tabular-nums text-slate-100">
-                          {formatMMK(row.total)}
-                        </td>
-                        <td className="px-3 py-2 text-slate-400">{row.area ?? '—'}</td>
-                        <td className="px-3 py-2 text-slate-300">
-                          {row.paid ? 'Paid' : 'Unpaid'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="mt-4 flex gap-3">
-                <button
-                  type="button"
-                  onClick={saveDraft}
-                  disabled={saving}
-                  className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
-                >
-                  {saving ? 'Saving...' : 'Save to Ledger'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDraft(null)}
-                  disabled={saving}
-                  className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800 disabled:opacity-50"
-                >
-                  Discard
-                </button>
-              </div>
-            </div>
-          ) : null}
-        </section>
-
-        <section className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Total Revenue" value={formatMMK(stats.revenue)} />
-          <StatCard label="Orders" value={stats.count} />
-          <StatCard
-            label="Top Product"
-            value={stats.topItem ?? '—'}
-            hint={stats.topItem ? `${stats.topQuantity} sold` : undefined}
+        ) : (
+          <LedgerTab
+            orders={orders}
+            stats={stats}
+            loading={loading}
+            onTogglePaid={togglePaid}
+            pendingId={pendingId}
+            onRemind={draftReminder}
+            remindingId={remindingId}
           />
-          <StatCard
-            label="Unpaid Amount"
-            value={formatMMK(stats.unpaid)}
-            hint={`${orders.filter((order) => !order.paid).length} unpaid orders`}
-          />
-        </section>
-
-        <section className="mt-8 overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-slate-800 bg-slate-900/80 text-xs uppercase tracking-wider text-slate-400">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Customer</th>
-                  <th className="px-4 py-3 font-medium">Item</th>
-                  <th className="px-4 py-3 text-right font-medium">Qty</th>
-                  <th className="px-4 py-3 text-right font-medium">Unit Price</th>
-                  <th className="px-4 py-3 text-right font-medium">Total</th>
-                  <th className="px-4 py-3 font-medium">Area</th>
-                  <th className="px-4 py-3 font-medium">Paid</th>
-                  <th className="px-4 py-3 font-medium">
-                    <span className="sr-only">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800">
-                {loading ? (
-                  <tr>
-                    <td colSpan={8} className="px-4 py-10 text-center text-slate-400">
-                      Loading orders…
-                    </td>
-                  </tr>
-                ) : orders.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="px-4 py-14 text-center">
-                      <p className="text-base font-medium text-slate-300">
-                        No orders yet
-                      </p>
-                      <p className="mt-1 text-sm text-slate-500">
-                        Paste some chat messages above to get started.
-                      </p>
-                    </td>
-                  </tr>
-                ) : (
-                  orders.map((order) => (
-                    <tr key={order.id} className="transition hover:bg-slate-800/40">
-                      <td className="px-4 py-3 font-medium text-slate-100">
-                        {order.customer}
-                      </td>
-                      <td className="px-4 py-3 text-slate-300">{order.item}</td>
-                      <td className="px-4 py-3 text-right tabular-nums text-slate-300">
-                        {order.quantity}
-                      </td>
-                      <td className="px-4 py-3 text-right tabular-nums text-slate-300">
-                        {formatMMK(order.unit_price)}
-                      </td>
-                      <td className="px-4 py-3 text-right tabular-nums font-medium text-slate-100">
-                        {formatMMK(order.total)}
-                      </td>
-                      <td className="px-4 py-3 text-slate-400">{order.area}</td>
-                      <td className="px-4 py-3">
-                        <button
-                          type="button"
-                          onClick={() => togglePaid(order)}
-                          disabled={pendingId === order.id}
-                          className={`rounded-full px-3 py-1 text-xs font-medium transition disabled:opacity-50 ${
-                            order.paid
-                              ? 'bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25'
-                              : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'
-                          }`}
-                        >
-                          {order.paid ? 'Paid' : 'Unpaid'}
-                        </button>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        {order.paid ? null : (
-                          <button
-                            type="button"
-                            onClick={() => draftReminder(order)}
-                            disabled={remindingId === order.id}
-                            className="rounded-lg border border-slate-700 px-3 py-1 text-xs font-medium text-slate-300 transition hover:border-emerald-500/40 hover:text-emerald-300 disabled:opacity-50"
-                          >
-                            {remindingId === order.id ? 'Writing…' : 'Remind'}
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
+        )}
       </div>
 
       {reminder ? (
