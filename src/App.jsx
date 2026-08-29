@@ -81,7 +81,7 @@ const STAT_TONES = {
 
 function StatCard({ label, value, hint, tone = 'neutral' }) {
   return (
-    <div className="min-w-0 rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-5 shadow-lg shadow-slate-900/5 transition-colors duration-200 hover:border-slate-300 sm:p-6 xl:p-5 dark:border-slate-800 dark:from-slate-900 dark:to-slate-900/40 dark:shadow-slate-950/40 dark:hover:border-slate-700">
+    <div className="min-w-0 rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-100/70 p-6 shadow-md shadow-slate-900/10 transition duration-200 hover:border-slate-300 hover:shadow-lg hover:shadow-slate-900/10 sm:p-7 xl:p-5 dark:border-slate-800 dark:from-slate-900 dark:to-slate-900/40 dark:shadow-slate-950/40 dark:hover:border-slate-700 dark:hover:shadow-slate-950/40">
       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-500">
         {label}
       </p>
@@ -205,7 +205,7 @@ function ExtractTab({
   saving,
 }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-lg shadow-slate-900/5 sm:p-7 dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-slate-950/30">
+    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-900/10 ring-1 ring-slate-900/5 sm:p-8 dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-slate-950/30 dark:ring-0">
       <SectionHeading
         title="Extract orders from chat"
         description="Paste raw messages from any app. Nothing is saved until you review and confirm."
@@ -323,7 +323,7 @@ function ExtractTab({
 
 function InsightsPanel({ onGenerate, generating, insights, hasOrders }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-lg shadow-slate-900/5 sm:p-7 dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-slate-950/30">
+    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-900/10 ring-1 ring-slate-900/5 sm:p-8 dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-slate-950/30 dark:ring-0">
       <SectionHeading
         title="AI Insights"
         description={
@@ -361,11 +361,11 @@ function InsightsPanel({ onGenerate, generating, insights, hasOrders }) {
           ))}
         </ul>
       ) : (
-        <div className="mt-6 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950/40">
-          <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-            {generating ? 'Looking through your orders…' : 'Nothing read yet'}
-          </p>
-          <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-slate-500 dark:text-slate-500">
+        <div className="mt-5 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-5 py-4 text-center dark:border-slate-800 dark:bg-slate-950/40">
+          <p className="text-sm text-slate-500 dark:text-slate-500">
+            <span className="font-medium text-slate-700 dark:text-slate-300">
+              {generating ? 'Looking through your orders…' : 'Nothing read yet.'}
+            </span>{' '}
             {hasOrders
               ? 'Generate a short summary of what is selling, who owes you, and who keeps coming back.'
               : 'Your insights will appear here once there are orders to read.'}
@@ -399,15 +399,17 @@ function LedgerTab({
 }) {
   const searching = query.trim().length > 0
   return (
-    <div className="space-y-10 sm:space-y-12">
-      <InsightsPanel
-        onGenerate={onGenerateInsights}
-        generating={generatingInsights}
-        insights={insights}
-        hasOrders={orders.length > 0}
-      />
+    <div className="divide-y divide-slate-200 dark:divide-slate-800">
+      <div className="pb-12 sm:pb-16">
+        <InsightsPanel
+          onGenerate={onGenerateInsights}
+          generating={generatingInsights}
+          insights={insights}
+          hasOrders={orders.length > 0}
+        />
+      </div>
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <section className="grid grid-cols-1 gap-4 py-12 sm:grid-cols-2 sm:gap-5 sm:py-16 lg:grid-cols-3 xl:grid-cols-5">
         <StatCard label="Total Revenue" value={formatMMK(stats.revenue)} tone="accent" />
         <StatCard label="Orders" value={stats.count} />
         <StatCard
@@ -430,7 +432,7 @@ function LedgerTab({
         />
       </section>
 
-      <section>
+      <section className="pt-12 sm:pt-16">
         <SectionHeading
           title="Orders"
           description={
@@ -452,7 +454,7 @@ function LedgerTab({
           }
         />
 
-        <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-slate-950/30">
+        <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg shadow-slate-900/10 ring-1 ring-slate-900/5 dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-slate-950/30 dark:ring-0">
           {/* relative keeps absolutely positioned descendants (the sr-only label
               below) inside this scroller instead of the initial containing block,
               where they would widen the whole document. */}
