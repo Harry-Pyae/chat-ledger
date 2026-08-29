@@ -379,7 +379,10 @@ function LedgerTab({
         />
 
         <div className="mt-5 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 shadow-lg shadow-slate-950/30">
-          <div className="overflow-x-auto">
+          {/* relative keeps absolutely positioned descendants (the sr-only label
+              below) inside this scroller instead of the initial containing block,
+              where they would widen the whole document. */}
+          <div className="relative overflow-x-auto">
           <table className="w-full min-w-[46rem] text-left text-sm">
             <thead className="border-b border-slate-800 bg-slate-950/40 text-[11px] uppercase tracking-[0.14em] text-slate-500">
               <tr>
@@ -390,7 +393,7 @@ function LedgerTab({
                 <th className="px-4 py-3 text-right font-medium">Total</th>
                 <th className="px-4 py-3 font-medium">Area</th>
                 <th className="px-4 py-3 font-medium">Paid</th>
-                <th className="px-4 py-3 font-medium">
+                <th className="relative px-4 py-3 font-medium">
                   <span className="sr-only">Actions</span>
                 </th>
               </tr>
