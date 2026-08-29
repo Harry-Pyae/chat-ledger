@@ -56,6 +56,9 @@ function App() {
   const [extracting, setExtracting] = useState(false)
   const [draft, setDraft] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [remindingId, setRemindingId] = useState(null)
+  const [reminder, setReminder] = useState(null)
+  const [copied, setCopied] = useState(false)
 
   const fetchOrders = useCallback(async () => {
     if (!supabase) {
@@ -173,6 +176,48 @@ function App() {
       await fetchOrders()
     }
     setSaving(false)
+  }
+
+  const draftReminder = async (order) => {
+    setRemindingId(order.id)
+    setCopied(false)
+
+    try {
+      const response = await fetch('/.netlify/functions/remind', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer: order.customer,
+          item: order.item,
+          quantity: order.quantity,
+          total: order.total,
+        }),
+      })
+      const payload = await response.json()
+
+      if (!response.ok) {
+        setError(payload?.error ?? `Reminder failed (HTTP ${response.status}).`)
+      } else {
+        setError(null)
+        setReminder({ order, message: payload.message })
+      }
+    } catch {
+      setError(
+        'Could not reach the reminder function. Are you running `netlify dev` instead of `npm run dev`?',
+      )
+    }
+
+    setRemindingId(null)
+  }
+
+  const copyReminder = async () => {
+    try {
+      await navigator.clipboard.writeText(reminder.message)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      setError('Could not copy to the clipboard. Select the text and copy it manually.')
+    }
   }
 
   return (
@@ -316,18 +361,21 @@ function App() {
                   <th className="px-4 py-3 text-right font-medium">Total</th>
                   <th className="px-4 py-3 font-medium">Area</th>
                   <th className="px-4 py-3 font-medium">Paid</th>
+                  <th className="px-4 py-3 font-medium">
+                    <span className="sr-only">Actions</span>
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-10 text-center text-slate-400">
+                    <td colSpan={8} className="px-4 py-10 text-center text-slate-400">
                       Loading orders…
                     </td>
                   </tr>
                 ) : orders.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-14 text-center">
+                    <td colSpan={8} className="px-4 py-14 text-center">
                       <p className="text-base font-medium text-slate-300">
                         No orders yet
                       </p>
@@ -367,6 +415,18 @@ function App() {
                           {order.paid ? 'Paid' : 'Unpaid'}
                         </button>
                       </td>
+                      <td className="px-4 py-3 text-right">
+                        {order.paid ? null : (
+                          <button
+                            type="button"
+                            onClick={() => draftReminder(order)}
+                            disabled={remindingId === order.id}
+                            className="rounded-lg border border-slate-700 px-3 py-1 text-xs font-medium text-slate-300 transition hover:border-emerald-500/40 hover:text-emerald-300 disabled:opacity-50"
+                          >
+                            {remindingId === order.id ? 'Writing…' : 'Remind'}
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}
@@ -375,6 +435,49 @@ function App() {
           </div>
         </section>
       </div>
+
+      {reminder ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-6"
+          onClick={() => setReminder(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-xl border border-slate-800 bg-slate-900 p-5 shadow-xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-300">
+                  Payment reminder
+                </h2>
+                <p className="mt-1 text-xs text-slate-500">
+                  {reminder.order.customer ?? 'Customer'} ·{' '}
+                  {formatMMK(reminder.order.total)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReminder(null)}
+                className="rounded-lg px-2 py-1 text-sm text-slate-400 transition hover:bg-slate-800 hover:text-slate-200"
+              >
+                Close
+              </button>
+            </div>
+
+            <p className="mt-4 whitespace-pre-wrap rounded-lg border border-slate-800 bg-slate-950 p-4 text-sm leading-relaxed text-slate-100">
+              {reminder.message}
+            </p>
+
+            <button
+              type="button"
+              onClick={copyReminder}
+              className="mt-4 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400"
+            >
+              {copied ? 'Copied' : 'Copy'}
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
