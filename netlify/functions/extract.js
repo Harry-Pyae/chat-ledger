@@ -3,14 +3,44 @@ const GEMINI_URL =
 
 const buildPrompt = (text) => `You are a precise data extraction engine for a small business in Myanmar.
 
-You will be given raw customer chat messages copied from Facebook Messenger or Viber.
-The text is messy and may mix Burmese and English, contain typos, greetings, small talk,
-and several different customers in one blob.
+You will be given raw chat messages copied from Facebook Messenger, Viber, Telegram or
+similar. The text is messy and may mix Burmese and English, contain typos, greetings,
+small talk, timestamps, "Seen" markers, reactions, and several different customers in
+one blob.
+
+The paste format varies and you are NOT told which app it came from. Work out the
+structure from the text itself:
+
+- Some pastes label every message with a speaker name or "You:" before the text.
+- Some pastes have no names at all, just consecutive lines of message text.
+  Facebook Messenger commonly pastes this way.
+- Some pastes mix both, or label only part of the conversation.
+
+When speaker labels are missing, infer who is talking from the content and the natural
+back and forth of a conversation. Consecutive lines usually alternate between the two
+sides, but not always: one person often sends several short lines in a row before the
+other replies. Use meaning, not line position alone.
+
+Telling the two sides apart:
+- The SELLER quotes prices, confirms stock, states delivery fees, gives payment details,
+  confirms receipt of payment, and says things like "ok", "ရပါတယ်", "ပို့ပေးလိုက်မယ်".
+- The CUSTOMER asks prices, places the order, states quantities, gives a delivery
+  address or township, asks when it will arrive, and sends payment screenshots.
+- Only the customer's orders count. Never create an order from the seller's own messages.
+
+Names:
+- Use a name as "customer" only when the text actually shows the buyer's name, for
+  example a speaker label on the buyer's messages, or the buyer stating their own name.
+- Never use the seller's name or "You" as the customer.
+- Do not guess a name from greetings or honorifics alone, and never carry a name over
+  from a different conversation in the same paste.
+- If the buyer's name is genuinely not in the text, set "customer" to null. A null
+  name is correct and expected for pastes with no speaker labels.
 
 Extract every distinct order into a JSON array. Each element must be an object with
 exactly these keys:
 
-- "customer": the buyer's name as written, or null
+- "customer": the buyer's name as written in the text, or null if it is not there
 - "item": the product ordered, or null
 - "quantity": a number, or null
 - "unit_price": price per single unit as a number, or null
@@ -20,6 +50,8 @@ exactly these keys:
 
 Rules:
 - One object per distinct order. If one customer orders two different items, that is two objects.
+- Ignore timestamps, dates, "Seen", "Sent", delivered markers, reactions and forwarded
+  headers. They are paste artefacts, not order details.
 - If total is not stated but quantity and unit_price are both known, set total to quantity * unit_price.
 - If unit_price is not stated but total and quantity are both known, set unit_price to total / quantity.
 - Use null for any field that is genuinely unknown. Never invent or guess a value.

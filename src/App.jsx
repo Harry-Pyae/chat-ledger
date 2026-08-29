@@ -137,14 +137,14 @@ function ExtractTab({
     <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-lg shadow-slate-950/30 sm:p-7">
       <SectionHeading
         title="Extract orders from chat"
-        description="Paste raw messages. Nothing is saved until you review and confirm."
+        description="Paste raw messages from any app. Nothing is saved until you review and confirm."
       />
 
       <textarea
         value={messages}
         onChange={(event) => onMessagesChange(event.target.value)}
         rows={8}
-        placeholder="Paste your Messenger or Viber messages here..."
+        placeholder="Paste your Messenger, Viber or Telegram messages here — with or without speaker names..."
         className="mt-5 w-full resize-y rounded-xl border border-slate-800 bg-slate-950 p-4 text-base leading-relaxed text-slate-100 transition-colors placeholder:text-slate-600 hover:border-slate-700 focus:border-emerald-500/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/40 sm:text-sm sm:leading-loose"
       />
 
