@@ -187,7 +187,7 @@ function LedgerTab({
 }) {
   return (
     <>
-      <section className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <StatCard label="Total Revenue" value={formatMMK(stats.revenue)} />
         <StatCard label="Orders" value={stats.count} />
         <StatCard
@@ -199,6 +199,13 @@ function LedgerTab({
           label="Unpaid Amount"
           value={formatMMK(stats.unpaid)}
           hint={`${orders.filter((order) => !order.paid).length} unpaid orders`}
+        />
+        <StatCard
+          label="Business Health"
+          value={formatMMK(stats.averageOrder)}
+          hint={`Average order · ${stats.repeatCustomers} repeat ${
+            stats.repeatCustomers === 1 ? 'customer' : 'customers'
+          }`}
         />
       </section>
 
@@ -349,7 +356,26 @@ function App() {
       (a, b) => b[1] - a[1],
     )[0] ?? [null, 0]
 
-    return { revenue, unpaid, topItem, topQuantity, count: orders.length }
+    const ordersByCustomer = new Map()
+    for (const order of orders) {
+      // Names arrive from chat, so casing and stray spaces vary between messages.
+      const customer = order.customer?.trim().toLowerCase()
+      if (!customer) continue
+      ordersByCustomer.set(customer, (ordersByCustomer.get(customer) ?? 0) + 1)
+    }
+    const repeatCustomers = [...ordersByCustomer.values()].filter(
+      (count) => count > 1,
+    ).length
+
+    return {
+      revenue,
+      unpaid,
+      topItem,
+      topQuantity,
+      count: orders.length,
+      averageOrder: orders.length ? revenue / orders.length : 0,
+      repeatCustomers,
+    }
   }, [orders])
 
   const togglePaid = async (order) => {
