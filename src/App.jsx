@@ -6,6 +6,12 @@ const TABS = [
   { id: 'ledger', label: 'Ledger' },
 ]
 
+const THEMES = [
+  { id: 'dark', label: 'Dark', title: 'Always dark' },
+  { id: 'light', label: 'Light', title: 'Always light' },
+  { id: 'system', label: 'System', title: 'Follow your device setting' },
+]
+
 const formatMMK = (value) => {
   if (value === null || value === undefined || value === '') return '—'
   return `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(
@@ -68,15 +74,15 @@ const MessageIcon = () => (
 
 // Only figures the owner acts on get colour; the rest stay neutral so they recede.
 const STAT_TONES = {
-  neutral: 'text-slate-50',
-  accent: 'text-emerald-400',
-  warning: 'text-amber-400',
+  neutral: 'text-slate-900 dark:text-slate-50',
+  accent: 'text-emerald-600 dark:text-emerald-400',
+  warning: 'text-amber-600 dark:text-amber-400',
 }
 
 function StatCard({ label, value, hint, tone = 'neutral' }) {
   return (
-    <div className="min-w-0 rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900 to-slate-900/40 p-5 shadow-lg shadow-slate-950/40 transition-colors duration-200 hover:border-slate-700 sm:p-6 xl:p-5">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+    <div className="min-w-0 rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-5 shadow-lg shadow-slate-900/5 transition-colors duration-200 hover:border-slate-300 sm:p-6 xl:p-5 dark:border-slate-800 dark:from-slate-900 dark:to-slate-900/40 dark:shadow-slate-950/40 dark:hover:border-slate-700">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-500">
         {label}
       </p>
       {/* Sizes step down where the grid gets to five columns, so long values
@@ -97,11 +103,11 @@ function SectionHeading({ title, description, action }) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div className="min-w-0">
-        <h2 className="text-lg font-semibold tracking-tight text-slate-100 sm:text-xl">
+        <h2 className="text-lg font-semibold tracking-tight text-slate-900 sm:text-xl dark:text-slate-100">
           {title}
         </h2>
         {description ? (
-          <p className="mt-1.5 max-w-prose break-words text-sm leading-relaxed text-slate-500">
+          <p className="mt-1.5 max-w-prose break-words text-sm leading-relaxed text-slate-500 dark:text-slate-500">
             {description}
           </p>
         ) : null}
@@ -113,12 +119,17 @@ function SectionHeading({ title, description, action }) {
 
 function EmptyState({ title, description }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-800 bg-slate-950/40 px-6 py-12 text-center">
-      <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-slate-800 bg-slate-900">
-        <span aria-hidden="true" className="h-2 w-2 rounded-full bg-slate-600" />
+    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center dark:border-slate-800 dark:bg-slate-950/40">
+      <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <span
+          aria-hidden="true"
+          className="h-2 w-2 rounded-full bg-slate-400 dark:bg-slate-600"
+        />
       </div>
-      <p className="mt-4 text-base font-medium text-slate-200">{title}</p>
-      <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-slate-500">
+      <p className="mt-4 text-base font-medium text-slate-800 dark:text-slate-200">
+        {title}
+      </p>
+      <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-slate-500 dark:text-slate-500">
         {description}
       </p>
     </div>
@@ -127,7 +138,7 @@ function EmptyState({ title, description }) {
 
 function TabBar({ activeTab, onSelect }) {
   return (
-    <div className="mt-8 flex w-full gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1 sm:inline-flex sm:w-auto">
+    <div className="mt-8 flex w-full gap-1 rounded-xl border border-slate-200 bg-slate-100 p-1 sm:inline-flex sm:w-auto dark:border-slate-800 dark:bg-slate-900/60">
       {TABS.map((tab) => (
         <button
           key={tab.id}
@@ -136,17 +147,46 @@ function TabBar({ activeTab, onSelect }) {
           aria-current={activeTab === tab.id ? 'page' : undefined}
           className={`flex min-w-0 flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 sm:flex-none sm:px-5 ${
             activeTab === tab.id
-              ? 'bg-slate-800 text-slate-50 shadow-sm shadow-slate-950/50'
-              : 'text-slate-500 hover:text-slate-300'
+              ? 'bg-white text-slate-900 shadow-sm shadow-slate-900/10 dark:bg-slate-800 dark:text-slate-50 dark:shadow-slate-950/50'
+              : 'text-slate-500 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300'
           }`}
         >
           <span
             aria-hidden="true"
             className={`h-1.5 w-1.5 rounded-full transition-colors ${
-              activeTab === tab.id ? 'bg-emerald-400' : 'bg-transparent'
+              activeTab === tab.id
+                ? 'bg-emerald-500 dark:bg-emerald-400'
+                : 'bg-transparent'
             }`}
           />
           {tab.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function ThemeSwitcher({ theme, onSelect }) {
+  return (
+    <div
+      role="group"
+      aria-label="Colour theme"
+      className="flex gap-1 rounded-xl border border-slate-200 bg-slate-100 p-1 dark:border-slate-800 dark:bg-slate-900/60"
+    >
+      {THEMES.map((option) => (
+        <button
+          key={option.id}
+          type="button"
+          onClick={() => onSelect(option.id)}
+          aria-pressed={theme === option.id}
+          title={option.title}
+          className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 ${
+            theme === option.id
+              ? 'bg-white text-slate-900 shadow-sm shadow-slate-900/10 dark:bg-slate-800 dark:text-slate-50 dark:shadow-slate-950/50'
+              : 'text-slate-500 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300'
+          }`}
+        >
+          {option.label}
         </button>
       ))}
     </div>
@@ -165,7 +205,7 @@ function ExtractTab({
   saving,
 }) {
   return (
-    <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-lg shadow-slate-950/30 sm:p-7">
+    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-lg shadow-slate-900/5 sm:p-7 dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-slate-950/30">
       <SectionHeading
         title="Extract orders from chat"
         description="Paste raw messages from any app. Nothing is saved until you review and confirm."
@@ -176,36 +216,36 @@ function ExtractTab({
         onChange={(event) => onMessagesChange(event.target.value)}
         rows={8}
         placeholder="Paste your Messenger, Viber or Telegram messages here — with or without speaker names..."
-        className="mt-5 w-full resize-y rounded-xl border border-slate-800 bg-slate-950 p-4 text-base leading-relaxed text-slate-100 transition-colors placeholder:text-slate-600 hover:border-slate-700 focus:border-emerald-500/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/40 sm:text-sm sm:leading-loose"
+        className="mt-5 w-full resize-y rounded-xl border border-slate-300 bg-slate-50 p-4 text-base leading-relaxed text-slate-900 transition-colors placeholder:text-slate-400 hover:border-slate-400 focus:border-emerald-500/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/40 sm:text-sm sm:leading-loose dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-600 dark:hover:border-slate-700"
       />
 
       <button
         type="button"
         onClick={onExtract}
         disabled={extracting || !messages.trim()}
-        className="mt-4 w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors duration-200 hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400 sm:w-auto"
+        className="mt-4 w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors duration-200 hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 sm:w-auto dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
       >
         {extracting ? 'Reading messages...' : 'Extract Orders'}
       </button>
 
       {draft?.length ? (
-        <div className="mt-7 rounded-xl border border-slate-800 bg-slate-950/60 p-5">
+        <div className="mt-7 rounded-xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-950/60">
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-semibold tracking-tight text-emerald-400">
+            <span className="text-2xl font-semibold tracking-tight text-emerald-600 dark:text-emerald-400">
               {draft.length}
             </span>
-            <span className="text-sm font-medium text-slate-300">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
               {draft.length === 1 ? 'order found' : 'orders found'}
             </span>
           </div>
-          <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
+          <p className="mt-1.5 text-sm leading-relaxed text-slate-500 dark:text-slate-500">
             Review before saving. A dash means the message did not say. Add any missing
             customer names, or leave them blank.
           </p>
 
           <div className="mt-5 overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-slate-800 text-[11px] uppercase tracking-[0.14em] text-slate-500">
+              <thead className="border-b border-slate-200 text-[11px] uppercase tracking-[0.14em] text-slate-500 dark:border-slate-800 dark:text-slate-500">
                 <tr>
                   <th className="px-3 py-2 font-medium">Customer</th>
                   <th className="px-3 py-2 font-medium">Item</th>
@@ -216,10 +256,10 @@ function ExtractTab({
                   <th className="px-3 py-2 font-medium">Paid</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                 {draft.map((row, index) => (
                   <tr key={index} className="transition-colors hover:bg-emerald-500/5">
-                    <td className="px-3 py-2.5 font-medium text-slate-100">
+                    <td className="px-3 py-2.5 font-medium text-slate-900 dark:text-slate-100">
                       {row.needsName ? (
                         <input
                           type="text"
@@ -227,24 +267,28 @@ function ExtractTab({
                           onChange={(event) => onCustomerChange(index, event.target.value)}
                           placeholder="Add name"
                           aria-label={`Customer name for order ${index + 1}`}
-                          className="w-32 rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm font-normal text-slate-100 transition-colors placeholder:text-slate-600 hover:border-slate-600 focus:border-emerald-500/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/40 sm:w-40"
+                          className="w-32 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-normal text-slate-900 transition-colors placeholder:text-slate-400 hover:border-slate-400 focus:border-emerald-500/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/40 sm:w-40 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-600 dark:hover:border-slate-600"
                         />
                       ) : (
                         row.customer
                       )}
                     </td>
-                    <td className="px-3 py-2.5 text-slate-300">{row.item ?? '—'}</td>
-                    <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums text-slate-300">
+                    <td className="px-3 py-2.5 text-slate-700 dark:text-slate-300">
+                      {row.item ?? '—'}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums text-slate-700 dark:text-slate-300">
                       {row.quantity ?? '—'}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums text-slate-300">
+                    <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums text-slate-700 dark:text-slate-300">
                       {formatMMK(row.unit_price)}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums text-slate-100">
+                    <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums text-slate-900 dark:text-slate-100">
                       {formatMMK(row.total)}
                     </td>
-                    <td className="px-3 py-2.5 text-slate-400">{row.area ?? '—'}</td>
-                    <td className="px-3 py-2.5 text-slate-300">
+                    <td className="px-3 py-2.5 text-slate-500 dark:text-slate-400">
+                      {row.area ?? '—'}
+                    </td>
+                    <td className="px-3 py-2.5 text-slate-700 dark:text-slate-300">
                       {row.paid ? 'Paid' : 'Unpaid'}
                     </td>
                   </tr>
@@ -258,7 +302,7 @@ function ExtractTab({
               type="button"
               onClick={onSave}
               disabled={saving}
-              className="rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors duration-200 hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+              className="rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors duration-200 hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 dark:disabled:bg-slate-700"
             >
               {saving ? 'Saving...' : 'Save to Ledger'}
             </button>
@@ -266,7 +310,7 @@ function ExtractTab({
               type="button"
               onClick={onDiscard}
               disabled={saving}
-              className="rounded-lg border border-slate-700 px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors duration-200 hover:border-slate-600 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500/60 disabled:opacity-50"
+              className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors duration-200 hover:border-slate-400 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500/60 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800"
             >
               Discard
             </button>
@@ -279,7 +323,7 @@ function ExtractTab({
 
 function InsightsPanel({ onGenerate, generating, insights, hasOrders }) {
   return (
-    <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-lg shadow-slate-950/30 sm:p-7">
+    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-lg shadow-slate-900/5 sm:p-7 dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-slate-950/30">
       <SectionHeading
         title="AI Insights"
         description={
@@ -292,7 +336,7 @@ function InsightsPanel({ onGenerate, generating, insights, hasOrders }) {
             type="button"
             onClick={onGenerate}
             disabled={generating || !hasOrders}
-            className="w-full shrink-0 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors duration-200 hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:cursor-not-allowed disabled:bg-slate-800 disabled:text-slate-500 sm:w-auto"
+            className="w-full shrink-0 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors duration-200 hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 sm:w-auto dark:disabled:bg-slate-800"
           >
             {generating ? 'Reading your numbers…' : 'Generate insights'}
           </button>
@@ -304,24 +348,24 @@ function InsightsPanel({ onGenerate, generating, insights, hasOrders }) {
           {insights.map((insight, index) => (
             <li
               key={index}
-              className="flex gap-4 rounded-xl border border-slate-800 bg-slate-950/60 p-4 sm:p-5"
+              className="flex gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5 dark:border-slate-800 dark:bg-slate-950/60"
             >
-              <span className="shrink-0 text-xs font-semibold tabular-nums text-emerald-400">
+              <span className="shrink-0 text-xs font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
                 {String(index + 1).padStart(2, '0')}
               </span>
               {/* Burmese runs without spaces, so long strings need an explicit break. */}
-              <p className="min-w-0 break-words text-sm leading-relaxed text-slate-200">
+              <p className="min-w-0 break-words text-sm leading-relaxed text-slate-700 dark:text-slate-200">
                 {insight}
               </p>
             </li>
           ))}
         </ul>
       ) : (
-        <div className="mt-6 rounded-xl border border-dashed border-slate-800 bg-slate-950/40 px-6 py-10 text-center">
-          <p className="text-sm font-medium text-slate-300">
+        <div className="mt-6 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950/40">
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
             {generating ? 'Looking through your orders…' : 'Nothing read yet'}
           </p>
-          <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-slate-500">
+          <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-slate-500 dark:text-slate-500">
             {hasOrders
               ? 'Generate a short summary of what is selling, who owes you, and who keeps coming back.'
               : 'Your insights will appear here once there are orders to read.'}
@@ -403,18 +447,18 @@ function LedgerTab({
               onChange={(event) => onQueryChange(event.target.value)}
               placeholder="Search customer, item or area"
               aria-label="Search orders"
-              className="w-full rounded-lg border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm text-slate-100 transition-colors placeholder:text-slate-600 hover:border-slate-700 focus:border-emerald-500/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/40 sm:w-72"
+              className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 transition-colors placeholder:text-slate-400 hover:border-slate-400 focus:border-emerald-500/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/40 sm:w-72 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-600 dark:hover:border-slate-700"
             />
           }
         />
 
-        <div className="mt-5 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 shadow-lg shadow-slate-950/30">
+        <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-slate-950/30">
           {/* relative keeps absolutely positioned descendants (the sr-only label
               below) inside this scroller instead of the initial containing block,
               where they would widen the whole document. */}
           <div className="relative overflow-x-auto">
           <table className="w-full min-w-[46rem] text-left text-sm">
-            <thead className="border-b border-slate-800 bg-slate-950/40 text-[11px] uppercase tracking-[0.14em] text-slate-500">
+            <thead className="border-b border-slate-200 bg-slate-50 text-[11px] uppercase tracking-[0.14em] text-slate-500 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-500">
               <tr>
                 <th className="px-4 py-3 font-medium">Customer</th>
                 <th className="px-4 py-3 font-medium">Item</th>
@@ -428,7 +472,7 @@ function LedgerTab({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
               {loading ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-16 text-center text-sm text-slate-500">
@@ -457,9 +501,9 @@ function LedgerTab({
                 visibleOrders.map((order) => (
                   <tr
                     key={order.id}
-                    className="transition-colors duration-200 hover:bg-slate-800/40"
+                    className="transition-colors duration-200 hover:bg-slate-50 dark:hover:bg-slate-800/40"
                   >
-                    <td className="px-4 py-3.5 font-medium text-slate-100">
+                    <td className="px-4 py-3.5 font-medium text-slate-900 dark:text-slate-100">
                       {editingCustomerId === order.id ? (
                         <input
                           type="text"
@@ -473,31 +517,37 @@ function LedgerTab({
                           }}
                           placeholder="Add name"
                           aria-label="Customer name"
-                          className="w-36 rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1 text-sm font-medium text-slate-100 placeholder:text-slate-600 focus:border-emerald-500/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/40"
+                          className="w-36 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-emerald-500/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/40 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-600"
                         />
                       ) : (
                         <button
                           type="button"
                           onClick={() => onCustomerEditStart(order)}
-                          className="rounded-lg px-2 py-1 text-left transition-colors hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+                          className="rounded-lg px-2 py-1 text-left transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 dark:hover:bg-slate-800"
                         >
                           {order.customer ?? (
-                            <span className="font-normal text-slate-600">Add name</span>
+                            <span className="font-normal text-slate-400 dark:text-slate-600">
+                              Add name
+                            </span>
                           )}
                         </button>
                       )}
                     </td>
-                    <td className="px-4 py-3.5 text-slate-300">{order.item}</td>
-                    <td className="whitespace-nowrap px-4 py-3.5 text-right tabular-nums text-slate-300">
+                    <td className="px-4 py-3.5 text-slate-700 dark:text-slate-300">
+                      {order.item}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3.5 text-right tabular-nums text-slate-700 dark:text-slate-300">
                       {order.quantity}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3.5 text-right tabular-nums text-slate-300">
+                    <td className="whitespace-nowrap px-4 py-3.5 text-right tabular-nums text-slate-700 dark:text-slate-300">
                       {formatMMK(order.unit_price)}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3.5 text-right tabular-nums font-medium text-slate-100">
+                    <td className="whitespace-nowrap px-4 py-3.5 text-right tabular-nums font-medium text-slate-900 dark:text-slate-100">
                       {formatMMK(order.total)}
                     </td>
-                    <td className="px-4 py-3.5 text-slate-400">{order.area}</td>
+                    <td className="px-4 py-3.5 text-slate-500 dark:text-slate-400">
+                      {order.area}
+                    </td>
                     <td className="px-4 py-3.5">
                       <button
                         type="button"
@@ -507,8 +557,8 @@ function LedgerTab({
                         // Hovering previews the opposite state, so the pill reads as a toggle.
                         className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ring-1 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:opacity-50 ${
                           order.paid
-                            ? 'bg-emerald-500/20 text-emerald-300 ring-emerald-500/40 hover:bg-slate-800 hover:text-slate-300 hover:ring-slate-600'
-                            : 'bg-amber-500/10 text-amber-300 ring-amber-500/30 hover:bg-emerald-500/20 hover:text-emerald-300 hover:ring-emerald-500/40'
+                            ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/30 hover:bg-slate-100 hover:text-slate-600 hover:ring-slate-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:ring-emerald-500/40 dark:hover:bg-slate-800 dark:hover:text-slate-300 dark:hover:ring-slate-600'
+                            : 'bg-amber-50 text-amber-700 ring-amber-600/30 hover:bg-emerald-50 hover:text-emerald-700 hover:ring-emerald-600/30 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/30 dark:hover:bg-emerald-500/20 dark:hover:text-emerald-300 dark:hover:ring-emerald-500/40'
                         }`}
                       >
                         {order.paid ? <CheckIcon /> : <ClockIcon />}
@@ -522,7 +572,7 @@ function LedgerTab({
                           onClick={() => onRemind(order)}
                           disabled={remindingId === order.id}
                           title="Draft a payment reminder"
-                          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors duration-200 hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors duration-200 hover:border-emerald-500/40 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-300"
                         >
                           <MessageIcon />
                           {remindingId === order.id ? 'Writing…' : 'Remind'}
@@ -563,6 +613,20 @@ function App() {
   const [query, setQuery] = useState('')
   const [editingCustomerId, setEditingCustomerId] = useState(null)
   const [customerValue, setCustomerValue] = useState('')
+  const [theme, setTheme] = useState('dark')
+  const [systemPrefersDark, setSystemPrefersDark] = useState(
+    () => window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? true,
+  )
+
+  useEffect(() => {
+    const media = window.matchMedia?.('(prefers-color-scheme: dark)')
+    if (!media) return
+    const onChange = (event) => setSystemPrefersDark(event.matches)
+    media.addEventListener('change', onChange)
+    return () => media.removeEventListener('change', onChange)
+  }, [])
+
+  const isDark = theme === 'dark' || (theme === 'system' && systemPrefersDark)
 
   const fetchOrders = useCallback(async () => {
     if (!supabase) {
@@ -848,23 +912,32 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-slate-950 text-slate-200">
+    <div
+      className={`min-h-screen overflow-x-hidden bg-slate-50 text-slate-700 dark:bg-slate-950 dark:text-slate-200 ${
+        isDark ? 'dark' : ''
+      }`}
+    >
       <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
-        <header className="border-l-2 border-emerald-500 pl-4 sm:pl-5">
-          <h1 className="break-words text-2xl font-semibold tracking-tight text-slate-50 sm:text-4xl lg:text-5xl">
-            Chat to Ledger
-          </h1>
-          <p className="mt-3 max-w-xl break-words text-sm leading-relaxed text-slate-400 sm:text-base">
-            Turn everyday sales chatter into a clean, searchable order book.
-          </p>
-        </header>
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+          <header className="border-l-2 border-emerald-500 pl-4 sm:pl-5">
+            <h1 className="break-words text-2xl font-semibold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl dark:text-slate-50">
+              Chat to Ledger
+            </h1>
+            <p className="mt-3 max-w-xl break-words text-sm leading-relaxed text-slate-600 sm:text-base dark:text-slate-400">
+              Turn everyday sales chatter into a clean, searchable order book.
+            </p>
+          </header>
+          <ThemeSwitcher theme={theme} onSelect={setTheme} />
+        </div>
 
         <TabBar activeTab={activeTab} onSelect={setActiveTab} />
 
         {error ? (
-          <div className="mt-8 rounded-xl border border-rose-500/30 bg-rose-500/10 p-5">
-            <p className="text-sm font-semibold text-rose-200">Something went wrong</p>
-            <p className="mt-1.5 break-words text-sm leading-relaxed text-rose-200/70">
+          <div className="mt-8 rounded-xl border border-rose-300 bg-rose-50 p-5 dark:border-rose-500/30 dark:bg-rose-500/10">
+            <p className="text-sm font-semibold text-rose-700 dark:text-rose-200">
+              Something went wrong
+            </p>
+            <p className="mt-1.5 break-words text-sm leading-relaxed text-rose-600 dark:text-rose-200/70">
               {error}
             </p>
           </div>
@@ -912,19 +985,19 @@ function App() {
 
       {reminder ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm sm:p-6"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm sm:p-6 dark:bg-slate-950/80"
           onClick={() => setReminder(null)}
         >
           <div
-            className="tab-panel max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl shadow-slate-950/60 sm:p-7"
+            className="tab-panel max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl shadow-slate-900/20 sm:p-7 dark:border-slate-800 dark:bg-slate-900 dark:shadow-slate-950/60"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
-                <h2 className="text-lg font-semibold tracking-tight text-slate-100">
+                <h2 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">
                   Payment reminder
                 </h2>
-                <p className="mt-1.5 break-words text-sm text-slate-500">
+                <p className="mt-1.5 break-words text-sm text-slate-500 dark:text-slate-500">
                   {reminder.order.customer ?? 'Customer'} ·{' '}
                   {formatMMK(reminder.order.total)}
                 </p>
@@ -932,14 +1005,14 @@ function App() {
               <button
                 type="button"
                 onClick={() => setReminder(null)}
-                className="shrink-0 rounded-lg px-2 py-1 text-sm text-slate-400 transition-colors duration-200 hover:bg-slate-800 hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500/60"
+                className="shrink-0 rounded-lg px-2 py-1 text-sm text-slate-500 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500/60 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
               >
                 Close
               </button>
             </div>
 
             {/* Burmese needs a larger size and looser leading than Latin to stay legible. */}
-            <p className="mt-5 whitespace-pre-wrap break-words rounded-xl border border-slate-800 bg-slate-950 p-4 text-base leading-loose text-slate-100 sm:p-5">
+            <p className="mt-5 whitespace-pre-wrap break-words rounded-xl border border-slate-200 bg-slate-50 p-4 text-base leading-loose text-slate-900 sm:p-5 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100">
               {reminder.message}
             </p>
 

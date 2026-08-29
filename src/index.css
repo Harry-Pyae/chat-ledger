@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Drives dark: off a class instead of the OS setting, so the switcher can force
+   a theme. "System" resolves the media query in React and adds the class. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* Myanmar faces sit after the Latin stack so Burmese glyphs resolve everywhere
      without changing how Latin text renders. Padauk and Pyidaungsu are the
