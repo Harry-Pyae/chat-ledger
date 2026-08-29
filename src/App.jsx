@@ -301,6 +301,9 @@ function InsightsPanel({ onGenerate, generating, insights, hasOrders }) {
 
 function LedgerTab({
   orders,
+  visibleOrders,
+  query,
+  onQueryChange,
   stats,
   loading,
   onTogglePaid,
@@ -311,6 +314,7 @@ function LedgerTab({
   generatingInsights,
   insights,
 }) {
+  const searching = query.trim().length > 0
   return (
     <div className="space-y-10 sm:space-y-12">
       <InsightsPanel
@@ -346,7 +350,23 @@ function LedgerTab({
       <section>
         <SectionHeading
           title="Orders"
-          description="Every order, newest first. Tap a status to mark it paid."
+          description={
+            searching
+              ? `${visibleOrders.length} of ${orders.length} ${
+                  orders.length === 1 ? 'order' : 'orders'
+                } match “${query.trim()}”`
+              : 'Every order, newest first. Tap a status to mark it paid.'
+          }
+          action={
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => onQueryChange(event.target.value)}
+              placeholder="Search customer, item or area"
+              aria-label="Search orders"
+              className="w-full rounded-lg border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm text-slate-100 transition-colors placeholder:text-slate-600 hover:border-slate-700 focus:border-emerald-500/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/40 sm:w-72"
+            />
+          }
         />
 
         <div className="mt-5 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 shadow-lg shadow-slate-950/30">
@@ -382,8 +402,17 @@ function LedgerTab({
                     />
                   </td>
                 </tr>
+              ) : visibleOrders.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="p-5">
+                    <EmptyState
+                      title="No matching orders"
+                      description="Nothing here matches that search. Try a customer name, an item or an area."
+                    />
+                  </td>
+                </tr>
               ) : (
-                orders.map((order) => (
+                visibleOrders.map((order) => (
                   <tr
                     key={order.id}
                     className="transition-colors duration-200 hover:bg-slate-800/40"
@@ -459,6 +488,7 @@ function App() {
   const [copied, setCopied] = useState(false)
   const [insights, setInsights] = useState(null)
   const [generatingInsights, setGeneratingInsights] = useState(false)
+  const [query, setQuery] = useState('')
 
   const fetchOrders = useCallback(async () => {
     if (!supabase) {
@@ -523,6 +553,18 @@ function App() {
       repeatCustomers,
     }
   }, [orders])
+
+  // Search only narrows the table; the stat cards stay on the full order list.
+  const visibleOrders = useMemo(() => {
+    const needle = query.trim().toLowerCase()
+    if (!needle) return orders
+
+    return orders.filter((order) =>
+      [order.customer, order.item, order.area].some((field) =>
+        String(field ?? '').toLowerCase().includes(needle),
+      ),
+    )
+  }, [orders, query])
 
   const togglePaid = async (order) => {
     if (!supabase) return
@@ -726,6 +768,9 @@ function App() {
           ) : (
             <LedgerTab
               orders={orders}
+              visibleOrders={visibleOrders}
+              query={query}
+              onQueryChange={setQuery}
               stats={stats}
               loading={loading}
               onTogglePaid={togglePaid}
