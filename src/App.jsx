@@ -36,6 +36,36 @@ const toOrderRow = (row) => {
   }
 }
 
+const iconProps = {
+  viewBox: '0 0 16 16',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.75,
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
+  'aria-hidden': 'true',
+  className: 'h-3.5 w-3.5 shrink-0',
+}
+
+const CheckIcon = () => (
+  <svg {...iconProps}>
+    <path d="M3.5 8.5l3 3 6-7" />
+  </svg>
+)
+
+const ClockIcon = () => (
+  <svg {...iconProps}>
+    <circle cx="8" cy="8" r="5.75" />
+    <path d="M8 4.75V8l2.25 1.5" />
+  </svg>
+)
+
+const MessageIcon = () => (
+  <svg {...iconProps}>
+    <path d="M13.5 10.5a1.5 1.5 0 01-1.5 1.5H7l-3 2.5V12H4a1.5 1.5 0 01-1.5-1.5v-6A1.5 1.5 0 014 3h8a1.5 1.5 0 011.5 1.5z" />
+  </svg>
+)
+
 // Only figures the owner acts on get colour; the rest stay neutral so they recede.
 const STAT_TONES = {
   neutral: 'text-slate-50',
@@ -473,12 +503,15 @@ function LedgerTab({
                         type="button"
                         onClick={() => onTogglePaid(order)}
                         disabled={pendingId === order.id}
-                        className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 disabled:opacity-50 ${
+                        title={order.paid ? 'Mark as unpaid' : 'Mark as paid'}
+                        // Hovering previews the opposite state, so the pill reads as a toggle.
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ring-1 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:opacity-50 ${
                           order.paid
-                            ? 'bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25'
-                            : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'
+                            ? 'bg-emerald-500/20 text-emerald-300 ring-emerald-500/40 hover:bg-slate-800 hover:text-slate-300 hover:ring-slate-600'
+                            : 'bg-amber-500/10 text-amber-300 ring-amber-500/30 hover:bg-emerald-500/20 hover:text-emerald-300 hover:ring-emerald-500/40'
                         }`}
                       >
+                        {order.paid ? <CheckIcon /> : <ClockIcon />}
                         {order.paid ? 'Paid' : 'Unpaid'}
                       </button>
                     </td>
@@ -488,8 +521,10 @@ function LedgerTab({
                           type="button"
                           onClick={() => onRemind(order)}
                           disabled={remindingId === order.id}
-                          className="whitespace-nowrap rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors duration-200 hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 disabled:opacity-50"
+                          title="Draft a payment reminder"
+                          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors duration-200 hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 disabled:opacity-50"
                         >
+                          <MessageIcon />
                           {remindingId === order.id ? 'Writing…' : 'Remind'}
                         </button>
                       )}
