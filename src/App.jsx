@@ -45,12 +45,14 @@ const STAT_TONES = {
 
 function StatCard({ label, value, hint, tone = 'neutral' }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900 to-slate-900/40 p-5 shadow-lg shadow-slate-950/40 transition-colors duration-200 hover:border-slate-700 sm:p-6">
+    <div className="rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900 to-slate-900/40 p-5 shadow-lg shadow-slate-950/40 transition-colors duration-200 hover:border-slate-700 sm:p-6 xl:p-5">
       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
         {label}
       </p>
+      {/* Sizes step down where the grid gets to five columns, so long values
+          like "341,000 MMK" wrap to two lines at worst instead of clipping. */}
       <p
-        className={`mt-3 truncate text-2xl font-semibold tracking-tight sm:text-3xl ${STAT_TONES[tone]}`}
+        className={`mt-3 line-clamp-2 break-words text-2xl font-semibold leading-snug tracking-tight sm:text-3xl lg:text-2xl xl:text-xl ${STAT_TONES[tone]}`}
       >
         {value}
       </p>
