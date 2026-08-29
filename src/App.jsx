@@ -1,10 +1,35 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 
-const formatMMK = (value) =>
-  `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(
+const formatMMK = (value) => {
+  if (value === null || value === undefined || value === '') return '—'
+  return `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(
     Number(value) || 0,
   )} MMK`
+}
+
+const toNumber = (value) => {
+  if (value === null || value === undefined || value === '') return null
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+// Gemini can return extra keys or strings where numbers belong; Postgres will not.
+const toOrderRow = (row) => {
+  const quantity = toNumber(row.quantity)
+  const unitPrice = toNumber(row.unit_price)
+  const total = toNumber(row.total)
+
+  return {
+    customer: row.customer ?? null,
+    item: row.item ?? null,
+    quantity,
+    unit_price: unitPrice,
+    total: total ?? (quantity !== null && unitPrice !== null ? quantity * unitPrice : null),
+    area: row.area ?? null,
+    paid: Boolean(row.paid),
+  }
+}
 
 const TEST_ORDER = {
   customer: 'Test Customer',
@@ -38,6 +63,10 @@ function App() {
   )
   const [inserting, setInserting] = useState(false)
   const [pendingId, setPendingId] = useState(null)
+  const [messages, setMessages] = useState('')
+  const [extracting, setExtracting] = useState(false)
+  const [draft, setDraft] = useState(null)
+  const [saving, setSaving] = useState(false)
 
   const fetchOrders = useCallback(async () => {
     if (!supabase) {
@@ -111,6 +140,52 @@ function App() {
     setPendingId(null)
   }
 
+  const extractOrders = async () => {
+    setExtracting(true)
+    setDraft(null)
+
+    try {
+      const response = await fetch('/.netlify/functions/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: messages }),
+      })
+      const payload = await response.json()
+
+      if (!response.ok) {
+        setError(payload?.error ?? `Extraction failed (HTTP ${response.status}).`)
+      } else if (!Array.isArray(payload) || payload.length === 0) {
+        setError('No orders were found in those messages.')
+      } else {
+        setError(null)
+        setDraft(payload.map(toOrderRow))
+      }
+    } catch {
+      setError(
+        'Could not reach the extraction function. Are you running `netlify dev` instead of `npm run dev`?',
+      )
+    }
+
+    setExtracting(false)
+  }
+
+  const saveDraft = async () => {
+    if (!supabase || !draft?.length) return
+    setSaving(true)
+
+    const { error: insertError } = await supabase.from('orders').insert(draft)
+
+    if (insertError) {
+      setError(insertError.message)
+    } else {
+      setError(null)
+      setDraft(null)
+      setMessages('')
+      await fetchOrders()
+    }
+    setSaving(false)
+  }
+
   const addTestOrder = async () => {
     if (!supabase) return
     setInserting(true)
@@ -158,6 +233,101 @@ function App() {
             <p className="mt-1 break-words text-sm text-red-200/80">{error}</p>
           </div>
         ) : null}
+
+        <section className="mt-8 rounded-xl border border-slate-800 bg-slate-900 p-5">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-300">
+            Extract orders from chat
+          </h2>
+          <p className="mt-1 text-xs text-slate-500">
+            Paste raw messages. Nothing is saved until you review and confirm.
+          </p>
+
+          <textarea
+            value={messages}
+            onChange={(event) => setMessages(event.target.value)}
+            rows={8}
+            placeholder="Paste your Messenger or Viber messages here..."
+            className="mt-4 w-full resize-y rounded-lg border border-slate-700 bg-slate-950 p-4 text-sm text-slate-100 placeholder:text-slate-600 focus:border-emerald-500/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/40"
+          />
+
+          <button
+            type="button"
+            onClick={extractOrders}
+            disabled={extracting || !messages.trim()}
+            className="mt-3 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+          >
+            {extracting ? 'Reading messages...' : 'Extract Orders'}
+          </button>
+
+          {draft?.length ? (
+            <div className="mt-6 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4">
+              <p className="text-sm font-medium text-emerald-300">
+                Found {draft.length} {draft.length === 1 ? 'order' : 'orders'}
+              </p>
+              <p className="mt-1 text-xs text-slate-400">
+                Review before saving. A dash means the message did not say.
+              </p>
+
+              <div className="mt-3 overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="text-xs uppercase tracking-wider text-slate-400">
+                    <tr>
+                      <th className="px-3 py-2 font-medium">Customer</th>
+                      <th className="px-3 py-2 font-medium">Item</th>
+                      <th className="px-3 py-2 text-right font-medium">Qty</th>
+                      <th className="px-3 py-2 text-right font-medium">Unit Price</th>
+                      <th className="px-3 py-2 text-right font-medium">Total</th>
+                      <th className="px-3 py-2 font-medium">Area</th>
+                      <th className="px-3 py-2 font-medium">Paid</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800">
+                    {draft.map((row, index) => (
+                      <tr key={index}>
+                        <td className="px-3 py-2 text-slate-100">
+                          {row.customer ?? '—'}
+                        </td>
+                        <td className="px-3 py-2 text-slate-300">{row.item ?? '—'}</td>
+                        <td className="px-3 py-2 text-right tabular-nums text-slate-300">
+                          {row.quantity ?? '—'}
+                        </td>
+                        <td className="px-3 py-2 text-right tabular-nums text-slate-300">
+                          {formatMMK(row.unit_price)}
+                        </td>
+                        <td className="px-3 py-2 text-right tabular-nums text-slate-100">
+                          {formatMMK(row.total)}
+                        </td>
+                        <td className="px-3 py-2 text-slate-400">{row.area ?? '—'}</td>
+                        <td className="px-3 py-2 text-slate-300">
+                          {row.paid ? 'Paid' : 'Unpaid'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-4 flex gap-3">
+                <button
+                  type="button"
+                  onClick={saveDraft}
+                  disabled={saving}
+                  className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+                >
+                  {saving ? 'Saving...' : 'Save to Ledger'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDraft(null)}
+                  disabled={saving}
+                  className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800 disabled:opacity-50"
+                >
+                  Discard
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </section>
 
         <section className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Total Revenue" value={formatMMK(stats.revenue)} />

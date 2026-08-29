@@ -1,0 +1,8 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[dev]
+  # Netlify Dev only reads .env by default; the Supabase and Gemini keys live in .env.local.
+  envFiles = [".env.local", ".env"]

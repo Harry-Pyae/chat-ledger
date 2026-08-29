@@ -13,7 +13,11 @@ dist-ssr
 *.local
 
 # Env
+.env
 .env.local
+
+# Netlify
+.netlify
 
 # Editor directories and files
 .vscode/*
