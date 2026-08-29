@@ -45,7 +45,7 @@ const STAT_TONES = {
 
 function StatCard({ label, value, hint, tone = 'neutral' }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900 to-slate-900/40 p-5 shadow-lg shadow-slate-950/40 transition-colors duration-200 hover:border-slate-700 sm:p-6 xl:p-5">
+    <div className="min-w-0 rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900 to-slate-900/40 p-5 shadow-lg shadow-slate-950/40 transition-colors duration-200 hover:border-slate-700 sm:p-6 xl:p-5">
       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
         {label}
       </p>
@@ -66,17 +66,17 @@ function StatCard({ label, value, hint, tone = 'neutral' }) {
 function SectionHeading({ title, description, action }) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-      <div>
+      <div className="min-w-0">
         <h2 className="text-lg font-semibold tracking-tight text-slate-100 sm:text-xl">
           {title}
         </h2>
         {description ? (
-          <p className="mt-1.5 max-w-prose text-sm leading-relaxed text-slate-500">
+          <p className="mt-1.5 max-w-prose break-words text-sm leading-relaxed text-slate-500">
             {description}
           </p>
         ) : null}
       </div>
-      {action}
+      {action ? <div className="w-full sm:w-auto">{action}</div> : null}
     </div>
   )
 }
@@ -104,7 +104,7 @@ function TabBar({ activeTab, onSelect }) {
           type="button"
           onClick={() => onSelect(tab.id)}
           aria-current={activeTab === tab.id ? 'page' : undefined}
-          className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-5 py-2 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 sm:flex-none ${
+          className={`flex min-w-0 flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 sm:flex-none sm:px-5 ${
             activeTab === tab.id
               ? 'bg-slate-800 text-slate-50 shadow-sm shadow-slate-950/50'
               : 'text-slate-500 hover:text-slate-300'
@@ -262,7 +262,7 @@ function InsightsPanel({ onGenerate, generating, insights, hasOrders }) {
             type="button"
             onClick={onGenerate}
             disabled={generating || !hasOrders}
-            className="shrink-0 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors duration-200 hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:cursor-not-allowed disabled:bg-slate-800 disabled:text-slate-500"
+            className="w-full shrink-0 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors duration-200 hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:cursor-not-allowed disabled:bg-slate-800 disabled:text-slate-500 sm:w-auto"
           >
             {generating ? 'Reading your numbers…' : 'Generate insights'}
           </button>
@@ -274,12 +274,15 @@ function InsightsPanel({ onGenerate, generating, insights, hasOrders }) {
           {insights.map((insight, index) => (
             <li
               key={index}
-              className="flex gap-4 rounded-xl border border-slate-800 bg-slate-950/60 p-5"
+              className="flex gap-4 rounded-xl border border-slate-800 bg-slate-950/60 p-4 sm:p-5"
             >
-              <span className="text-xs font-semibold tabular-nums text-emerald-400">
+              <span className="shrink-0 text-xs font-semibold tabular-nums text-emerald-400">
                 {String(index + 1).padStart(2, '0')}
               </span>
-              <p className="text-sm leading-relaxed text-slate-200">{insight}</p>
+              {/* Burmese runs without spaces, so long strings need an explicit break. */}
+              <p className="min-w-0 break-words text-sm leading-relaxed text-slate-200">
+                {insight}
+              </p>
             </li>
           ))}
         </ul>
@@ -443,7 +446,7 @@ function LedgerTab({
                         <button
                           type="button"
                           onClick={() => onCustomerEditStart(order)}
-                          className="-mx-2 rounded-lg px-2 py-1 text-left transition-colors hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+                          className="rounded-lg px-2 py-1 text-left transition-colors hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
                         >
                           {order.customer ?? (
                             <span className="font-normal text-slate-600">Add name</span>
@@ -807,13 +810,13 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200">
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
-        <header className="border-l-2 border-emerald-500 pl-5">
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-50 sm:text-4xl lg:text-5xl">
+    <div className="min-h-screen overflow-x-hidden bg-slate-950 text-slate-200">
+      <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
+        <header className="border-l-2 border-emerald-500 pl-4 sm:pl-5">
+          <h1 className="break-words text-2xl font-semibold tracking-tight text-slate-50 sm:text-4xl lg:text-5xl">
             Chat to Ledger
           </h1>
-          <p className="mt-3 max-w-xl text-base leading-relaxed text-slate-400">
+          <p className="mt-3 max-w-xl break-words text-sm leading-relaxed text-slate-400 sm:text-base">
             Turn everyday sales chatter into a clean, searchable order book.
           </p>
         </header>
@@ -879,11 +882,11 @@ function App() {
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-4">
-              <div>
+              <div className="min-w-0">
                 <h2 className="text-lg font-semibold tracking-tight text-slate-100">
                   Payment reminder
                 </h2>
-                <p className="mt-1.5 text-sm text-slate-500">
+                <p className="mt-1.5 break-words text-sm text-slate-500">
                   {reminder.order.customer ?? 'Customer'} ·{' '}
                   {formatMMK(reminder.order.total)}
                 </p>
@@ -898,7 +901,7 @@ function App() {
             </div>
 
             {/* Burmese needs a larger size and looser leading than Latin to stay legible. */}
-            <p className="mt-5 whitespace-pre-wrap rounded-xl border border-slate-800 bg-slate-950 p-5 text-base leading-loose text-slate-100">
+            <p className="mt-5 whitespace-pre-wrap break-words rounded-xl border border-slate-800 bg-slate-950 p-4 text-base leading-loose text-slate-100 sm:p-5">
               {reminder.message}
             </p>
 
