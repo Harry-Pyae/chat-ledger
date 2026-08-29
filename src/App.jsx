@@ -31,16 +31,6 @@ const toOrderRow = (row) => {
   }
 }
 
-const TEST_ORDER = {
-  customer: 'Test Customer',
-  item: 'Shan Noodle',
-  quantity: 2,
-  unit_price: 3000,
-  total: 6000,
-  area: 'Yangon',
-  paid: false,
-}
-
 function StatCard({ label, value, hint }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
@@ -61,7 +51,6 @@ function App() {
       ? null
       : 'Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env.local and restart the dev server.',
   )
-  const [inserting, setInserting] = useState(false)
   const [pendingId, setPendingId] = useState(null)
   const [messages, setMessages] = useState('')
   const [extracting, setExtracting] = useState(false)
@@ -186,45 +175,16 @@ function App() {
     setSaving(false)
   }
 
-  const addTestOrder = async () => {
-    if (!supabase) return
-    setInserting(true)
-
-    const { data, error: insertError } = await supabase
-      .from('orders')
-      .insert(TEST_ORDER)
-      .select()
-      .single()
-
-    if (insertError) {
-      setError(insertError.message)
-    } else {
-      setError(null)
-      setOrders((current) => [data, ...current])
-    }
-    setInserting(false)
-  }
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200">
       <div className="mx-auto max-w-6xl px-6 py-10">
-        <header className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-emerald-400 sm:text-4xl">
-              Chat to Ledger
-            </h1>
-            <p className="mt-2 text-sm text-slate-400">
-              Turn everyday sales chatter into a clean, searchable order book.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={addTestOrder}
-            disabled={inserting || !supabase}
-            className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-300 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {inserting ? 'Adding…' : 'Add test order'}
-          </button>
+        <header>
+          <h1 className="text-3xl font-bold tracking-tight text-emerald-400 sm:text-4xl">
+            Chat to Ledger
+          </h1>
+          <p className="mt-2 text-sm text-slate-400">
+            Turn everyday sales chatter into a clean, searchable order book.
+          </p>
         </header>
 
         {error ? (
@@ -372,7 +332,7 @@ function App() {
                         No orders yet
                       </p>
                       <p className="mt-1 text-sm text-slate-500">
-                        Add a test order to confirm reads and writes are working.
+                        Paste some chat messages above to get started.
                       </p>
                     </td>
                   </tr>
