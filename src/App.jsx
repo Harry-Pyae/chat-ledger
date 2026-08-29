@@ -313,6 +313,12 @@ function LedgerTab({
   onGenerateInsights,
   generatingInsights,
   insights,
+  editingCustomerId,
+  customerValue,
+  onCustomerEditStart,
+  onCustomerEditChange,
+  onCustomerCommit,
+  onCustomerCancel,
 }) {
   const searching = query.trim().length > 0
   return (
@@ -418,7 +424,32 @@ function LedgerTab({
                     className="transition-colors duration-200 hover:bg-slate-800/40"
                   >
                     <td className="px-4 py-3.5 font-medium text-slate-100">
-                      {order.customer}
+                      {editingCustomerId === order.id ? (
+                        <input
+                          type="text"
+                          autoFocus
+                          value={customerValue}
+                          onChange={(event) => onCustomerEditChange(event.target.value)}
+                          onBlur={() => onCustomerCommit(order)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter') onCustomerCommit(order)
+                            else if (event.key === 'Escape') onCustomerCancel()
+                          }}
+                          placeholder="Add name"
+                          aria-label="Customer name"
+                          className="w-36 rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1 text-sm font-medium text-slate-100 placeholder:text-slate-600 focus:border-emerald-500/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/40"
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => onCustomerEditStart(order)}
+                          className="-mx-2 rounded-lg px-2 py-1 text-left transition-colors hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+                        >
+                          {order.customer ?? (
+                            <span className="font-normal text-slate-600">Add name</span>
+                          )}
+                        </button>
+                      )}
                     </td>
                     <td className="px-4 py-3.5 text-slate-300">{order.item}</td>
                     <td className="whitespace-nowrap px-4 py-3.5 text-right tabular-nums text-slate-300">
@@ -489,6 +520,8 @@ function App() {
   const [insights, setInsights] = useState(null)
   const [generatingInsights, setGeneratingInsights] = useState(false)
   const [query, setQuery] = useState('')
+  const [editingCustomerId, setEditingCustomerId] = useState(null)
+  const [customerValue, setCustomerValue] = useState('')
 
   const fetchOrders = useCallback(async () => {
     if (!supabase) {
@@ -591,6 +624,51 @@ function App() {
       setError(null)
     }
     setPendingId(null)
+  }
+
+  const startEditingCustomer = (order) => {
+    setEditingCustomerId(order.id)
+    setCustomerValue(order.customer ?? '')
+  }
+
+  const cancelEditingCustomer = () => {
+    setEditingCustomerId(null)
+    setCustomerValue('')
+  }
+
+  const commitCustomer = async (order) => {
+    if (!supabase) return
+
+    const trimmed = customerValue.trim()
+    const nextCustomer = trimmed || null
+    const previousCustomer = order.customer ?? null
+
+    setEditingCustomerId(null)
+    setCustomerValue('')
+    // Enter closes the input, which also fires blur; skip the second, identical write.
+    if (nextCustomer === previousCustomer) return
+
+    setOrders((current) =>
+      current.map((row) =>
+        row.id === order.id ? { ...row, customer: nextCustomer } : row,
+      ),
+    )
+
+    const { error: updateError } = await supabase
+      .from('orders')
+      .update({ customer: nextCustomer })
+      .eq('id', order.id)
+
+    if (updateError) {
+      setError(updateError.message)
+      setOrders((current) =>
+        current.map((row) =>
+          row.id === order.id ? { ...row, customer: previousCustomer } : row,
+        ),
+      )
+    } else {
+      setError(null)
+    }
   }
 
   const extractOrders = async () => {
@@ -780,6 +858,12 @@ function App() {
               onGenerateInsights={generateInsights}
               generatingInsights={generatingInsights}
               insights={insights}
+              editingCustomerId={editingCustomerId}
+              customerValue={customerValue}
+              onCustomerEditStart={startEditingCustomer}
+              onCustomerEditChange={setCustomerValue}
+              onCustomerCommit={commitCustomer}
+              onCustomerCancel={cancelEditingCustomer}
             />
           )}
         </div>
