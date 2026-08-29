@@ -131,6 +131,7 @@ function ExtractTab({
   draft,
   onSave,
   onDiscard,
+  onCustomerChange,
   saving,
 }) {
   return (
@@ -168,7 +169,8 @@ function ExtractTab({
             </span>
           </div>
           <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
-            Review before saving. A dash means the message did not say.
+            Review before saving. A dash means the message did not say. Add any missing
+            customer names, or leave them blank.
           </p>
 
           <div className="mt-5 overflow-x-auto">
@@ -188,7 +190,18 @@ function ExtractTab({
                 {draft.map((row, index) => (
                   <tr key={index} className="transition-colors hover:bg-emerald-500/5">
                     <td className="px-3 py-2.5 font-medium text-slate-100">
-                      {row.customer ?? '—'}
+                      {row.needsName ? (
+                        <input
+                          type="text"
+                          value={row.customer ?? ''}
+                          onChange={(event) => onCustomerChange(index, event.target.value)}
+                          placeholder="Add name"
+                          aria-label={`Customer name for order ${index + 1}`}
+                          className="w-32 rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm font-normal text-slate-100 transition-colors placeholder:text-slate-600 hover:border-slate-600 focus:border-emerald-500/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/40 sm:w-40"
+                        />
+                      ) : (
+                        row.customer
+                      )}
                     </td>
                     <td className="px-3 py-2.5 text-slate-300">{row.item ?? '—'}</td>
                     <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums text-slate-300">
@@ -556,7 +569,13 @@ function App() {
         setError('No orders were found in those messages.')
       } else {
         setError(null)
-        setDraft(payload.map(toOrderRow))
+        setDraft(
+          payload.map((row) => {
+            const order = toOrderRow(row)
+            // Rows the model could not name get a text input in the preview.
+            return { ...order, needsName: order.customer === null }
+          }),
+        )
       }
     } catch {
       setError(
@@ -567,11 +586,25 @@ function App() {
     setExtracting(false)
   }
 
+  const updateDraftCustomer = (index, value) => {
+    setDraft((current) =>
+      current.map((row, rowIndex) =>
+        rowIndex === index ? { ...row, customer: value } : row,
+      ),
+    )
+  }
+
   const saveDraft = async () => {
     if (!supabase || !draft?.length) return
     setSaving(true)
 
-    const { error: insertError } = await supabase.from('orders').insert(draft)
+    // needsName is preview-only, and a name left blank stays null.
+    const rows = draft.map(({ needsName, ...row }) => ({
+      ...row,
+      customer: row.customer?.trim() ? row.customer.trim() : null,
+    }))
+
+    const { error: insertError } = await supabase.from('orders').insert(rows)
 
     if (insertError) {
       setError(insertError.message)
@@ -687,6 +720,7 @@ function App() {
               draft={draft}
               onSave={saveDraft}
               onDiscard={() => setDraft(null)}
+              onCustomerChange={updateDraftCustomer}
               saving={saving}
             />
           ) : (

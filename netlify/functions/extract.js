@@ -28,6 +28,24 @@ Telling the two sides apart:
   address or township, asks when it will arrive, and sends payment screenshots.
 - Only the customer's orders count. Never create an order from the seller's own messages.
 
+Read it as one continuous thread, not as separate lines:
+- Real conversations are not one message per turn. One person often sends several
+  messages in a row before the other replies. Never assume a line is a complete
+  exchange on its own.
+- Details of a single order are usually spread across many messages. The item may be
+  named in one line, the quantity agreed several lines later, the price quoted after
+  that, and the delivery address later still. Gather all of it into ONE order object.
+- A price, quantity or address mentioned later still belongs to the item under
+  discussion, even if unrelated chatter sits in between. Follow the topic, not the
+  line order.
+- Start a new order object only when the conversation genuinely moves to a different
+  item or a different buyer, not merely because a new message begins.
+- Corrections replace earlier values. If a customer says two and then changes to three,
+  the quantity is three.
+- Greetings, small talk, thanks, stickers, and questions that were never answered or
+  acted on are not orders. A customer merely asking a price, with no order placed, is
+  not an order.
+
 Names:
 - Use a name as "customer" only when the text actually shows the buyer's name, for
   example a speaker label on the buyer's messages, or the buyer stating their own name.
