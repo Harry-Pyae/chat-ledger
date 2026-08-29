@@ -1,1 +1,31 @@
 @import "tailwindcss";
+
+@theme {
+  /* Myanmar faces sit after the Latin stack so Burmese glyphs resolve everywhere
+     without changing how Latin text renders. Padauk and Pyidaungsu are the
+     common Windows/Myanmar installs; Noto covers everything else. */
+  --font-sans: ui-sans-serif, system-ui, sans-serif, "Noto Sans Myanmar", "Padauk",
+    "Myanmar Text", "Pyidaungsu", "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+@keyframes tab-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-panel {
+  animation: tab-in 220ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab-panel {
+    animation: none;
+  }
+}

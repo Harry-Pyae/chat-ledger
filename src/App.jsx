@@ -38,29 +38,31 @@ const toOrderRow = (row) => {
 
 function StatCard({ label, value, hint }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-      <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+    <div className="rounded-xl border border-slate-800 bg-slate-900 p-4 transition-colors duration-200 hover:border-slate-700 sm:p-5">
+      <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
         {label}
       </p>
-      <p className="mt-2 truncate text-2xl font-semibold text-slate-50">{value}</p>
-      {hint ? <p className="mt-1 text-xs text-slate-500">{hint}</p> : null}
+      <p className="mt-2 truncate text-xl font-semibold tracking-tight text-slate-50 sm:text-2xl">
+        {value}
+      </p>
+      {hint ? <p className="mt-1.5 text-xs leading-relaxed text-slate-500">{hint}</p> : null}
     </div>
   )
 }
 
 function TabBar({ activeTab, onSelect }) {
   return (
-    <div className="mt-6 inline-flex rounded-xl border border-slate-800 bg-slate-900 p-1">
+    <div className="mt-6 flex w-full rounded-xl border border-slate-800 bg-slate-900 p-1 sm:inline-flex sm:w-auto">
       {TABS.map((tab) => (
         <button
           key={tab.id}
           type="button"
           onClick={() => onSelect(tab.id)}
           aria-current={activeTab === tab.id ? 'page' : undefined}
-          className={`rounded-lg px-5 py-2 text-sm font-medium transition ${
+          className={`flex-1 rounded-lg px-5 py-2 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 sm:flex-none ${
             activeTab === tab.id
-              ? 'bg-emerald-500 text-slate-950'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/20'
+              : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
           }`}
         >
           {tab.label}
@@ -81,11 +83,11 @@ function ExtractTab({
   saving,
 }) {
   return (
-    <section className="mt-8 rounded-xl border border-slate-800 bg-slate-900 p-5">
+    <section className="mt-6 rounded-xl border border-slate-800 bg-slate-900 p-4 sm:mt-8 sm:p-6">
       <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-300">
         Extract orders from chat
       </h2>
-      <p className="mt-1 text-xs text-slate-500">
+      <p className="mt-1.5 text-xs leading-relaxed text-slate-500">
         Paste raw messages. Nothing is saved until you review and confirm.
       </p>
 
@@ -94,14 +96,14 @@ function ExtractTab({
         onChange={(event) => onMessagesChange(event.target.value)}
         rows={8}
         placeholder="Paste your Messenger or Viber messages here..."
-        className="mt-4 w-full resize-y rounded-lg border border-slate-700 bg-slate-950 p-4 text-sm text-slate-100 placeholder:text-slate-600 focus:border-emerald-500/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/40"
+        className="mt-4 w-full resize-y rounded-lg border border-slate-700 bg-slate-950 p-4 text-base leading-relaxed text-slate-100 transition-colors placeholder:text-slate-600 hover:border-slate-600 focus:border-emerald-500/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/40 sm:text-sm sm:leading-loose"
       />
 
       <button
         type="button"
         onClick={onExtract}
         disabled={extracting || !messages.trim()}
-        className="mt-3 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+        className="mt-4 w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors duration-200 hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400 sm:w-auto"
       >
         {extracting ? 'Reading messages...' : 'Extract Orders'}
       </button>
@@ -111,7 +113,7 @@ function ExtractTab({
           <p className="text-sm font-medium text-emerald-300">
             Found {draft.length} {draft.length === 1 ? 'order' : 'orders'}
           </p>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1.5 text-xs leading-relaxed text-slate-400">
             Review before saving. A dash means the message did not say.
           </p>
 
@@ -130,20 +132,22 @@ function ExtractTab({
               </thead>
               <tbody className="divide-y divide-slate-800">
                 {draft.map((row, index) => (
-                  <tr key={index}>
-                    <td className="px-3 py-2 text-slate-100">{row.customer ?? '—'}</td>
-                    <td className="px-3 py-2 text-slate-300">{row.item ?? '—'}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-slate-300">
+                  <tr key={index} className="transition-colors hover:bg-emerald-500/5">
+                    <td className="px-3 py-2.5 font-medium text-slate-100">
+                      {row.customer ?? '—'}
+                    </td>
+                    <td className="px-3 py-2.5 text-slate-300">{row.item ?? '—'}</td>
+                    <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums text-slate-300">
                       {row.quantity ?? '—'}
                     </td>
-                    <td className="px-3 py-2 text-right tabular-nums text-slate-300">
+                    <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums text-slate-300">
                       {formatMMK(row.unit_price)}
                     </td>
-                    <td className="px-3 py-2 text-right tabular-nums text-slate-100">
+                    <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums text-slate-100">
                       {formatMMK(row.total)}
                     </td>
-                    <td className="px-3 py-2 text-slate-400">{row.area ?? '—'}</td>
-                    <td className="px-3 py-2 text-slate-300">
+                    <td className="px-3 py-2.5 text-slate-400">{row.area ?? '—'}</td>
+                    <td className="px-3 py-2.5 text-slate-300">
                       {row.paid ? 'Paid' : 'Unpaid'}
                     </td>
                   </tr>
@@ -152,12 +156,12 @@ function ExtractTab({
             </table>
           </div>
 
-          <div className="mt-4 flex gap-3">
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
               onClick={onSave}
               disabled={saving}
-              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+              className="rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors duration-200 hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
             >
               {saving ? 'Saving...' : 'Save to Ledger'}
             </button>
@@ -165,7 +169,7 @@ function ExtractTab({
               type="button"
               onClick={onDiscard}
               disabled={saving}
-              className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800 disabled:opacity-50"
+              className="rounded-lg border border-slate-700 px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors duration-200 hover:border-slate-600 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500/60 disabled:opacity-50"
             >
               Discard
             </button>
@@ -187,7 +191,7 @@ function LedgerTab({
 }) {
   return (
     <>
-      <section className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <section className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-5">
         <StatCard label="Total Revenue" value={formatMMK(stats.revenue)} />
         <StatCard label="Orders" value={stats.count} />
         <StatCard
@@ -209,10 +213,10 @@ function LedgerTab({
         />
       </section>
 
-      <section className="mt-8 overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
+      <section className="mt-6 overflow-hidden rounded-xl border border-slate-800 bg-slate-900 sm:mt-8">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-slate-800 bg-slate-900/80 text-xs uppercase tracking-wider text-slate-400">
+          <table className="w-full min-w-[46rem] text-left text-sm">
+            <thead className="border-b border-slate-800 bg-slate-900/80 text-[11px] uppercase tracking-wider text-slate-400">
               <tr>
                 <th className="px-4 py-3 font-medium">Customer</th>
                 <th className="px-4 py-3 font-medium">Item</th>
@@ -235,36 +239,39 @@ function LedgerTab({
                 </tr>
               ) : orders.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-14 text-center">
+                  <td colSpan={8} className="px-4 py-16 text-center">
                     <p className="text-base font-medium text-slate-300">No orders yet</p>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-slate-500">
                       Head to the Extract tab and paste some chat messages to get started.
                     </p>
                   </td>
                 </tr>
               ) : (
                 orders.map((order) => (
-                  <tr key={order.id} className="transition hover:bg-slate-800/40">
-                    <td className="px-4 py-3 font-medium text-slate-100">
+                  <tr
+                    key={order.id}
+                    className="transition-colors duration-200 hover:bg-slate-800/40"
+                  >
+                    <td className="px-4 py-3.5 font-medium text-slate-100">
                       {order.customer}
                     </td>
-                    <td className="px-4 py-3 text-slate-300">{order.item}</td>
-                    <td className="px-4 py-3 text-right tabular-nums text-slate-300">
+                    <td className="px-4 py-3.5 text-slate-300">{order.item}</td>
+                    <td className="whitespace-nowrap px-4 py-3.5 text-right tabular-nums text-slate-300">
                       {order.quantity}
                     </td>
-                    <td className="px-4 py-3 text-right tabular-nums text-slate-300">
+                    <td className="whitespace-nowrap px-4 py-3.5 text-right tabular-nums text-slate-300">
                       {formatMMK(order.unit_price)}
                     </td>
-                    <td className="px-4 py-3 text-right tabular-nums font-medium text-slate-100">
+                    <td className="whitespace-nowrap px-4 py-3.5 text-right tabular-nums font-medium text-slate-100">
                       {formatMMK(order.total)}
                     </td>
-                    <td className="px-4 py-3 text-slate-400">{order.area}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3.5 text-slate-400">{order.area}</td>
+                    <td className="px-4 py-3.5">
                       <button
                         type="button"
                         onClick={() => onTogglePaid(order)}
                         disabled={pendingId === order.id}
-                        className={`rounded-full px-3 py-1 text-xs font-medium transition disabled:opacity-50 ${
+                        className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 disabled:opacity-50 ${
                           order.paid
                             ? 'bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25'
                             : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'
@@ -273,13 +280,13 @@ function LedgerTab({
                         {order.paid ? 'Paid' : 'Unpaid'}
                       </button>
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3.5 text-right">
                       {order.paid ? null : (
                         <button
                           type="button"
                           onClick={() => onRemind(order)}
                           disabled={remindingId === order.id}
-                          className="rounded-lg border border-slate-700 px-3 py-1 text-xs font-medium text-slate-300 transition hover:border-emerald-500/40 hover:text-emerald-300 disabled:opacity-50"
+                          className="whitespace-nowrap rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors duration-200 hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 disabled:opacity-50"
                         >
                           {remindingId === order.id ? 'Writing…' : 'Remind'}
                         </button>
@@ -496,12 +503,12 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200">
-      <div className="mx-auto max-w-6xl px-6 py-10">
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
         <header>
-          <h1 className="text-3xl font-bold tracking-tight text-emerald-400 sm:text-4xl">
+          <h1 className="text-2xl font-bold tracking-tight text-emerald-400 sm:text-3xl lg:text-4xl">
             Chat to Ledger
           </h1>
-          <p className="mt-2 text-sm text-slate-400">
+          <p className="mt-2 max-w-prose text-sm leading-relaxed text-slate-400">
             Turn everyday sales chatter into a clean, searchable order book.
           </p>
         </header>
@@ -511,41 +518,46 @@ function App() {
         {error ? (
           <div className="mt-6 rounded-lg border border-red-500/40 bg-red-500/10 p-4">
             <p className="text-sm font-medium text-red-300">Something went wrong</p>
-            <p className="mt-1 break-words text-sm text-red-200/80">{error}</p>
+            <p className="mt-1.5 break-words text-sm leading-relaxed text-red-200/80">
+              {error}
+            </p>
           </div>
         ) : null}
 
-        {activeTab === 'extract' ? (
-          <ExtractTab
-            messages={messages}
-            onMessagesChange={setMessages}
-            onExtract={extractOrders}
-            extracting={extracting}
-            draft={draft}
-            onSave={saveDraft}
-            onDiscard={() => setDraft(null)}
-            saving={saving}
-          />
-        ) : (
-          <LedgerTab
-            orders={orders}
-            stats={stats}
-            loading={loading}
-            onTogglePaid={togglePaid}
-            pendingId={pendingId}
-            onRemind={draftReminder}
-            remindingId={remindingId}
-          />
-        )}
+        {/* Keying on the tab remounts the panel, so the entrance animation replays. */}
+        <div key={activeTab} className="tab-panel">
+          {activeTab === 'extract' ? (
+            <ExtractTab
+              messages={messages}
+              onMessagesChange={setMessages}
+              onExtract={extractOrders}
+              extracting={extracting}
+              draft={draft}
+              onSave={saveDraft}
+              onDiscard={() => setDraft(null)}
+              saving={saving}
+            />
+          ) : (
+            <LedgerTab
+              orders={orders}
+              stats={stats}
+              loading={loading}
+              onTogglePaid={togglePaid}
+              pendingId={pendingId}
+              onRemind={draftReminder}
+              remindingId={remindingId}
+            />
+          )}
+        </div>
       </div>
 
       {reminder ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-6"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm sm:p-6"
           onClick={() => setReminder(null)}
         >
           <div
-            className="w-full max-w-lg rounded-xl border border-slate-800 bg-slate-900 p-5 shadow-xl"
+            className="tab-panel max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-xl border border-slate-800 bg-slate-900 p-5 shadow-2xl sm:p-6"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-4">
@@ -553,7 +565,7 @@ function App() {
                 <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-300">
                   Payment reminder
                 </h2>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1.5 text-xs text-slate-500">
                   {reminder.order.customer ?? 'Customer'} ·{' '}
                   {formatMMK(reminder.order.total)}
                 </p>
@@ -561,20 +573,21 @@ function App() {
               <button
                 type="button"
                 onClick={() => setReminder(null)}
-                className="rounded-lg px-2 py-1 text-sm text-slate-400 transition hover:bg-slate-800 hover:text-slate-200"
+                className="shrink-0 rounded-lg px-2 py-1 text-sm text-slate-400 transition-colors duration-200 hover:bg-slate-800 hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500/60"
               >
                 Close
               </button>
             </div>
 
-            <p className="mt-4 whitespace-pre-wrap rounded-lg border border-slate-800 bg-slate-950 p-4 text-sm leading-relaxed text-slate-100">
+            {/* Burmese needs a larger size and looser leading than Latin to stay legible. */}
+            <p className="mt-5 whitespace-pre-wrap rounded-lg border border-slate-800 bg-slate-950 p-4 text-base leading-loose text-slate-100">
               {reminder.message}
             </p>
 
             <button
               type="button"
               onClick={copyReminder}
-              className="mt-4 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400"
+              className="mt-5 w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors duration-200 hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 sm:w-auto"
             >
               {copied ? 'Copied' : 'Copy'}
             </button>
