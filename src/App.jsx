@@ -180,6 +180,50 @@ function ExtractTab({
   )
 }
 
+function InsightsPanel({ onGenerate, generating, insights, hasOrders }) {
+  return (
+    <section className="mt-6 rounded-xl border border-slate-800 bg-slate-900 p-4 sm:mt-8 sm:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-300">
+            AI Insights
+          </h2>
+          <p className="mt-1.5 text-xs leading-relaxed text-slate-500">
+            {hasOrders
+              ? 'A quick read of your order book, in plain language.'
+              : 'Save some orders first and there will be something to read.'}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onGenerate}
+          disabled={generating || !hasOrders}
+          className="shrink-0 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-2.5 text-sm font-medium text-emerald-300 transition-colors duration-200 hover:bg-emerald-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {generating ? 'Reading your numbers…' : 'Generate insights'}
+        </button>
+      </div>
+
+      {insights?.length ? (
+        <ul className="mt-5 space-y-3">
+          {insights.map((insight, index) => (
+            <li
+              key={index}
+              className="flex gap-3 rounded-lg border border-slate-800 bg-slate-950 p-4"
+            >
+              <span
+                aria-hidden="true"
+                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400"
+              />
+              <p className="text-sm leading-relaxed text-slate-200">{insight}</p>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </section>
+  )
+}
+
 function LedgerTab({
   orders,
   stats,
@@ -188,9 +232,19 @@ function LedgerTab({
   pendingId,
   onRemind,
   remindingId,
+  onGenerateInsights,
+  generatingInsights,
+  insights,
 }) {
   return (
     <>
+      <InsightsPanel
+        onGenerate={onGenerateInsights}
+        generating={generatingInsights}
+        insights={insights}
+        hasOrders={orders.length > 0}
+      />
+
       <section className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-5">
         <StatCard label="Total Revenue" value={formatMMK(stats.revenue)} />
         <StatCard label="Orders" value={stats.count} />
@@ -320,6 +374,8 @@ function App() {
   const [remindingId, setRemindingId] = useState(null)
   const [reminder, setReminder] = useState(null)
   const [copied, setCopied] = useState(false)
+  const [insights, setInsights] = useState(null)
+  const [generatingInsights, setGeneratingInsights] = useState(false)
 
   const fetchOrders = useCallback(async () => {
     if (!supabase) {
@@ -491,6 +547,32 @@ function App() {
     setRemindingId(null)
   }
 
+  const generateInsights = async () => {
+    setGeneratingInsights(true)
+
+    try {
+      const response = await fetch('/.netlify/functions/insight', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orders }),
+      })
+      const payload = await response.json()
+
+      if (!response.ok) {
+        setError(payload?.error ?? `Insights failed (HTTP ${response.status}).`)
+      } else {
+        setError(null)
+        setInsights(payload.insights)
+      }
+    } catch {
+      setError(
+        'Could not reach the insights function. Are you running `netlify dev` instead of `npm run dev`?',
+      )
+    }
+
+    setGeneratingInsights(false)
+  }
+
   const copyReminder = async () => {
     try {
       await navigator.clipboard.writeText(reminder.message)
@@ -546,6 +628,9 @@ function App() {
               pendingId={pendingId}
               onRemind={draftReminder}
               remindingId={remindingId}
+              onGenerateInsights={generateInsights}
+              generatingInsights={generatingInsights}
+              insights={insights}
             />
           )}
         </div>
