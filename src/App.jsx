@@ -12,6 +12,77 @@ const THEMES = [
   { id: 'system', label: 'System', title: 'Follow your device setting' },
 ]
 
+// Sample conversations so a first-time visitor can try extraction without
+// having to write realistic Burmese sales chat themselves.
+const SAMPLE_CHATS = [
+  {
+    id: 'named',
+    label: 'With names',
+    hint: '3 orders · Telegram style',
+    text: `Ma Hnin: ဆပ်ပြာ 6 ခု လိုချင်တယ်
+Shop: 2500 each ပါ, total 15000
+Ma Hnin: North Dagon ပို့ပေးပါ
+Ma Hnin: ငွေလွှဲပြီးပါပြီ KBZPay နဲ့
+
+Ko Zaw: rice bag 1 ခု ဘယ်လောက်လဲ
+Shop: 68000 ပါ
+Ko Zaw: ok ယူမယ်, Thaketa
+Ko Zaw: Wave Pay နဲ့ လွှဲလိုက်ပြီ
+
+Daw Khin: မုန့် 20 ခု order တင်ချင်တယ်
+Shop: တစ်ခု 1200, total 24000
+Daw Khin: Mayangone, နက်ဖြန် ပို့ပေးပါ`,
+  },
+  {
+    id: 'nameless',
+    label: 'No names',
+    hint: '2 orders · Messenger style',
+    text: `မင်္ဂလာပါ
+အဲဒီ bag က ရှိသေးလား
+ရှိပါတယ်
+ဘယ်လောက်လဲ
+45000 ပါရှင့်
+ဟုတ်ကဲ့ ကျေးဇူးပါ
+2 ခု ယူချင်တယ်
+ok ရပါတယ် ဘယ်ကို ပို့ရမလဲ
+Sanchaung ပါ
+ရပါပြီ
+
+နောက်တစ်ခု မေးချင်လို့
+tea mix ရှိလား
+ရှိပါတယ် တစ်ထုပ် 3500
+5 ထုပ် လိုချင်တယ်
+17500 ပါ
+Insein ကို ပို့ပေးပါ
+ငွေလွှဲပြီးပါပြီ`,
+  },
+  {
+    id: 'messy',
+    label: 'Messy',
+    hint: '1 order · corrections and small talk',
+    text: `Ma Ei: hello
+Ma Ei: ရှင်
+Ma Ei: ဟို power bank ရှိလား
+Shop: ဟုတ်ကဲ့ ရှိပါတယ်
+Ma Ei: ok
+Shop: ဘာအရောင် လိုချင်လဲ
+Ma Ei: အနက်
+Ma Ei: မဟုတ်ဘူး အဖြူ ပဲ ယူမယ်
+Shop: ရပါတယ်
+Ma Ei: ဘယ်လောက်လဲ ပြောမပြောရသေးဘူး
+Shop: 35000 ပါ
+Ma Ei: 2 ခု
+Ma Ei: အင်း 3 ခု ပဲ လုပ်လိုက်
+Shop: 105000 ပါ
+Ma Ei: မရမ်းကုန်း
+Shop: ok မနက်ဖြန် ပို့ပေးမယ်
+
+Ko Myo: ဈေးလျှော့လို့ရလား
+Shop: ဘာလိုချင်တာလဲ
+Ko Myo: ဘာမှ မဟုတ်ပါဘူး မေးကြည့်တာ`,
+  },
+]
+
 const formatMMK = (value) => {
   if (value === null || value === undefined || value === '') return '—'
   return `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(
@@ -211,12 +282,29 @@ function ExtractTab({
         description="Paste raw messages from any app. Nothing is saved until you review and confirm."
       />
 
+      <div className="mt-5 flex flex-wrap items-center gap-2">
+        <span className="text-sm text-slate-500 dark:text-slate-400">
+          New here? Try a sample:
+        </span>
+        {SAMPLE_CHATS.map((sample) => (
+          <button
+            key={sample.id}
+            type="button"
+            onClick={() => onMessagesChange(sample.text)}
+            title={sample.hint}
+            className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 transition-colors duration-200 hover:border-emerald-500/60 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:hover:border-emerald-500/60 dark:hover:text-emerald-400"
+          >
+            {sample.label}
+          </button>
+        ))}
+      </div>
+
       <textarea
         value={messages}
         onChange={(event) => onMessagesChange(event.target.value)}
         rows={8}
         placeholder="Paste your Messenger, Viber or Telegram messages here — with or without speaker names..."
-        className="mt-5 w-full resize-y rounded-xl border border-slate-300 bg-slate-50 p-4 text-base leading-relaxed text-slate-900 transition-colors placeholder:text-slate-400 hover:border-slate-400 focus:border-emerald-500/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/40 sm:text-sm sm:leading-loose dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-600 dark:hover:border-slate-700"
+        className="mt-3 w-full resize-y rounded-xl border border-slate-300 bg-slate-50 p-4 text-base leading-relaxed text-slate-900 transition-colors placeholder:text-slate-400 hover:border-slate-400 focus:border-emerald-500/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/40 sm:text-sm sm:leading-loose dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-600 dark:hover:border-slate-700"
       />
 
       <button
